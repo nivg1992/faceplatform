@@ -1,3 +1,4 @@
+ARG TARGETPLATFORM
 FROM python:latest AS builder
 
 RUN echo "I am running on $BUILDPLATFORM, building for $TARGETPLATFORM"
