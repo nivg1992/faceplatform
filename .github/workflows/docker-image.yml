@@ -31,7 +31,7 @@ jobs:
         id: docker_build
         uses: docker/build-push-action@v5
         with:
-          platforms: linux/arm64,linux/amd64
+          platforms: linux/amd64
           push: true
           tags: ${{env.REGISTRY_IMAGE}}:latest
           cache-from: type=registry,ref=${{env.REGISTRY_IMAGE}}:buildcache
