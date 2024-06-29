@@ -93,7 +93,7 @@ def extract_and_save_faces(image_path):
                 os.makedirs(dest_fpath_images, exist_ok=True)
                 cv2.imwrite(dest_fpath_images + "/" + os.path.basename(image_path), img)
                 
-            logging.debug(f"--------- Face {i} name {name} confidence: {confidence} -------------")
+            logging.info(f"--------- Face {i} name {name} confidence: {confidence} -------------")
             os.remove(output_path)
 
         return face_result
@@ -133,7 +133,7 @@ def worker(task_queue, task_queue_receive_process, stop_event):
             faces = process_task(data['fileName'])  # Simulate a task taking some time to complete
             if len(faces) > 0:
                 task_queue_receive_process.put({"eventId": eventId, "faces": faces})
-                logging.info(f"--------- Face name {faces.join(',')} eventId {eventId} -------------")
+                logging.info(f"--------- Face name {','.join(faces)} eventId {eventId} -------------")
             logging.debug(f"Task {data} completed")
             task_queue.task_done()
         except queue.Empty:
