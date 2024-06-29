@@ -2,6 +2,7 @@
 FROM python:latest AS builder
 
 ARG TARGETPLATFORM
+ARG BUILDPLATFORM
 
 RUN echo "I am running on $BUILDPLATFORM, building for $TARGETPLATFORM"
 
@@ -39,6 +40,7 @@ RUN --mount=type=cache,target=$POETRY_CACHE_DIR poetry install --no-root
 FROM python:slim AS runtime
 
 ARG TARGETPLATFORM
+ARG BUILDPLATFORM
 
 RUN echo "I am running on $BUILDPLATFORM, building for $TARGETPLATFORM"
 
