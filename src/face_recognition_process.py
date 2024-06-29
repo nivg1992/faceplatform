@@ -64,7 +64,7 @@ def extract_and_save_faces(image_path):
                 df = dfs[0]
                 if not df.empty and df.shape[0] > 0:
                     identity = df.iloc[0]["identity"]
-                    name = identity.split("/")[2]
+                    name = identity.split("/")[-2]
                     # distance = float(df['distance'])
                     # threshold = float(df['threshold'])
                     dest_fpath_images = os.path.join(found_faces_dir, name)
@@ -82,7 +82,6 @@ def extract_and_save_faces(image_path):
                     os.makedirs(dest_fpath_images, exist_ok=True)
                     cv2.imwrite(dest_fpath_images + "/" + os.path.basename(image_path), img)
                     shutil.copy(output_path, dest_fpath_images + f"/face-{i}" + os.path.basename(image_path))
-                
             else:                
                 name = "unknown-" + uuid.uuid4().hex
                 dest_fpath = os.path.join(faces_dir, name)
