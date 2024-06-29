@@ -1,5 +1,7 @@
 FROM python:latest as builder
 
+RUN echo "I am running on $BUILDPLATFORM, building for $TARGETPLATFORM"
+
 RUN pip install poetry
 
 ENV POETRY_NO_INTERACTION=1 \
