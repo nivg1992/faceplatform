@@ -17,7 +17,7 @@ eventIdMap = {}
 
 
 def recognition(filename, topic, eventId, stop_recognition_event):
-    eventIdMap[eventId] = stop_recognition_event
+    eventIdMap[eventId] = {"stop_event": stop_recognition_event, "topic": topic}
     task_queue_send_process.put({"fileName": filename, "topic": topic, "eventId": eventId})
 
 def listen(num_processes):
@@ -36,8 +36,11 @@ def listen(num_processes):
                 if data is None:
                     break
                 
-                eventIdMap[data["eventId"]].set()
-                
+                eventId = data["eventId"]
+                topic = eventIdMap[data["eventId"]]["topic"]
+                faces = data["faces"]
+                logging.info(f"--------- Face name {','.join(faces)} on {topic} eventId {eventId} -------------")
+                eventIdMap[data["eventId"]]["stop_event"].set()
                 task_queue_receive_process.task_done()
             except queue.Empty:
                 continue

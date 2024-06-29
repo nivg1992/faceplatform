@@ -101,13 +101,20 @@ def extract_and_save_faces(image_path):
         return face_result
 
 def process_task(fileName):
-    face = extract_and_save_faces(fileName)
-    os.remove(fileName)
-    return face
+    import traceback
+
+    try:
+        face = extract_and_save_faces(fileName)
+        os.remove(fileName)
+        return face
+    except Exception as e:
+        logging.error(traceback.format_exc())
+        return []
 
 def worker(task_queue, task_queue_receive_process, stop_event):
     # os.environ['TF_CPP_MIN_LOG_LEVEL'] = "2"
     
+    import traceback
     from deepface import DeepFace
     import queue
     # Configure logging for each worker process
@@ -132,8 +139,9 @@ def worker(task_queue, task_queue_receive_process, stop_event):
             faces = process_task(data['fileName'])  # Simulate a task taking some time to complete
             if len(faces) > 0:
                 task_queue_receive_process.put({"eventId": eventId, "faces": faces})
-                logging.info(f"--------- Face name {','.join(faces)} eventId {eventId} -------------")
             logging.debug(f"Task {data} completed")
             task_queue.task_done()
         except queue.Empty:
             continue
+        except Exception as e:
+            logging.error(traceback.format_exc())
