@@ -18,6 +18,7 @@ os.environ["DEEPFACE_HOME"] = os.path.join(data_folder, ".deepface")
 
 def extract_and_save_faces(image_path):
     from deepface import DeepFace
+    from deepface.commons import image_utils
     import matplotlib.pyplot as plt
     import cv2
     import uuid
@@ -50,9 +51,14 @@ def extract_and_save_faces(image_path):
 
             cv2.imwrite(output_path, extractFace[:, :, ::-1])
 
-            #cv2.imwrite(output_path, face["face"])
-            dfs = DeepFace.find(img_path = output_path, db_path = faces_dir, detector_backend="dlib", model_name="Dlib")
-            
+            storage_images = image_utils.list_images(path=faces_dir)
+
+            if len(storage_images) == 0:
+                #cv2.imwrite(output_path, face["face"])
+                dfs = DeepFace.find(img_path = output_path, db_path = faces_dir, detector_backend="dlib", model_name="Dlib")
+            else:
+                dfs = []
+                
             name = ""
             if len(dfs) > 0:
                 df = dfs[0]
@@ -93,6 +99,7 @@ def extract_and_save_faces(image_path):
         return face_result
     except Exception as e:
         logging.error(traceback.format_exc())
+        return face_result
 
 def process_task(fileName):
     face = extract_and_save_faces(fileName)
