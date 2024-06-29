@@ -1,4 +1,4 @@
-FROM python:latest as builder
+FROM python:latest AS builder
 
 RUN echo "I am running on $BUILDPLATFORM, building for $TARGETPLATFORM"
 
@@ -33,7 +33,9 @@ RUN touch README.md
 
 RUN --mount=type=cache,target=$POETRY_CACHE_DIR poetry install --no-root
 
-FROM python:slim as runtime
+FROM python:slim AS runtime
+
+RUN echo "I am running on $BUILDPLATFORM, building for $TARGETPLATFORM"
 
 RUN apt-get update && apt-get install ffmpeg libsm6 libxext6 wget tar git -y
 
