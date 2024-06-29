@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "faceplatform"
+version = "0.1.0"
+description = ""
+authors = ["niv gabay <nivg1992@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+deepface = "^0.0.92"
+paho-mqtt = "^2.1.0"
+requests = "^2.32.3"
+tf-keras = "^2.16.0"
+pyyaml = "^6.0.1"
+matplotlib = "^3.9.0"
+dlib = "^19.24.4"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

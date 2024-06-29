@@ -1,0 +1,9 @@
+__pycache__
+captured_images
+testdata
+extracted_faces
+database-images
+database
+cameras.json
+go2rtc.yaml
+.env

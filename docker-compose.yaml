@@ -1,0 +1,11 @@
+services:
+  faceplatform:
+    build: .
+    environment:
+      - PF_DATA_FOLDER=/data
+      - PF_MQTT_HOST=${mqtt_host}
+      - PF_MQTT_USER=${mqtt_user}
+      - PF_MQTT_PASSWORD=${mqtt_password}
+    volumes:
+      - ./cameras.json:/app/cameras.json
+      - ./testdata:/data
