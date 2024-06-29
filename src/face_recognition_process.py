@@ -53,12 +53,12 @@ def extract_and_save_faces(image_path):
 
             storage_images = image_utils.list_images(path=faces_dir)
 
-            if len(storage_images) == 0:
+            if len(storage_images) > 0:
                 #cv2.imwrite(output_path, face["face"])
                 dfs = DeepFace.find(img_path = output_path, db_path = faces_dir, detector_backend="dlib", model_name="Dlib")
             else:
                 dfs = []
-                
+
             name = ""
             if len(dfs) > 0:
                 df = dfs[0]
