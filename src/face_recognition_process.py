@@ -31,7 +31,7 @@ def extract_and_save_faces(image_path):
         img = cv2.imread(image_path)
         start = time.process_time()
         # Extract faces
-        faces = DeepFace.extract_faces(img, detector_backend="dlib", expand_percentage=30,enforce_detection=False)
+        faces = DeepFace.extract_faces(img, detector_backend="dlib", expand_percentage=70,enforce_detection=False)
         logging.debug(f"extract_faces time: {time.process_time() - start}")
 
         # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
