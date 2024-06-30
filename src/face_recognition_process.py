@@ -137,7 +137,7 @@ def worker(task_queue, task_queue_receive_process, stop_event, eventIdMap):
 
             logging.debug(f"process file {data}")
             eventId = data['eventId']
-            if eventId in eventIdMap and not eventIdMap[eventId]:
+            if eventId not in eventIdMap:
                 faces = process_task(data['fileName'])  # Simulate a task taking some time to complete
                 if len(faces) > 0:
                     task_queue_receive_process.put({"eventId": eventId, "faces": faces})
