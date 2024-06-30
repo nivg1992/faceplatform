@@ -142,6 +142,8 @@ def worker(task_queue, task_queue_receive_process, stop_event, eventIdMap):
                 if len(faces) > 0:
                     task_queue_receive_process.put({"eventId": eventId, "faces": faces})
                 logging.debug(f"Task {data} completed")
+            else:
+                os.remove(data['fileName'])
 
             task_queue.task_done()
         except queue.Empty:
