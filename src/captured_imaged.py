@@ -2,6 +2,7 @@
 
 import json
 import os
+import time
 import threading
 import paho.mqtt.client as mqtt
 import uuid
@@ -9,6 +10,8 @@ from src.face_recognition import recognition
 import logging
 import requests
 from datetime import datetime
+
+capture_window_ms = 500
 
 class CapturedImages:
     def __init__(self, output_folder, mqtt_broker, mqtt_port, mqtt_user, mqtt_password, go2rtc_url, go2rtc_map_file):
@@ -81,6 +84,7 @@ class CapturedImages:
         while not stop_event.is_set():
             # Take Snapshot
             try:
+                start_time = time.time()
                 # Perform the HTTP GET request
                 response = requests.get(f'{self.go2rtc_url}/api/frame.jpeg?src={source}')
                 response.raise_for_status()  # Check if the request was successful
@@ -97,5 +101,8 @@ class CapturedImages:
                 recognition(image_filename, topic, eventId, stop_event)
                 logging.debug(f"Image successfully downloaded and saved as {image_filename}")
 
+                elapsed_time = time.time() - start_time
+                sleep_time = max(0, (capture_window_ms / 1000) - elapsed_time)
+                time.sleep(sleep_time)
             except requests.exceptions.RequestException as e:
                 logging.error(f"An error occurred: {e}")
