@@ -18,7 +18,7 @@ filenames = {}
 
 
 def recognition(filename, topic, eventId, stop_recognition_event):
-    if filenames[filename]:
+    if filename in filenames:
         logging.error(f"filename already scanned")
     else:
         eventIdMap[eventId] = {"stop_event": stop_recognition_event, "topic": topic}
