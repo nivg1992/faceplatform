@@ -86,7 +86,7 @@ class CapturedImages:
                 response.raise_for_status()  # Check if the request was successful
 
                 # Get the current timestamp and format it
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S.%f")
                 
                 image_filename = os.path.join(self.output_folder, f'{eventId}_{timestamp}.jpg')
 

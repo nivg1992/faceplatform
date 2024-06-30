@@ -111,7 +111,7 @@ def process_task(fileName):
         logging.error(traceback.format_exc())
         return []
 
-def worker(task_queue, task_queue_receive_process, stop_event):
+def worker(task_queue, task_queue_receive_process, stop_event, eventIdMap):
     # os.environ['TF_CPP_MIN_LOG_LEVEL'] = "2"
     
     import traceback
@@ -134,12 +134,15 @@ def worker(task_queue, task_queue_receive_process, stop_event):
             data = task_queue.get(timeout=1)  # Wait for a task from the queue
             if data is None:
                 break
+
             logging.debug(f"process file {data}")
             eventId = data['eventId']
-            faces = process_task(data['fileName'])  # Simulate a task taking some time to complete
-            if len(faces) > 0:
-                task_queue_receive_process.put({"eventId": eventId, "faces": faces})
-            logging.debug(f"Task {data} completed")
+            if eventId in eventIdMap and not eventIdMap[eventId]:
+                faces = process_task(data['fileName'])  # Simulate a task taking some time to complete
+                if len(faces) > 0:
+                    task_queue_receive_process.put({"eventId": eventId, "faces": faces})
+                logging.debug(f"Task {data} completed")
+
             task_queue.task_done()
         except queue.Empty:
             continue

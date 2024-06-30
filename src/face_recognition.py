@@ -13,6 +13,7 @@ processes = []
 stop_event = multiprocessing.Event()
 task_queue_send_process = multiprocessing.JoinableQueue()
 task_queue_receive_process = multiprocessing.JoinableQueue()
+eventIdMapProccess = multiprocessing.Manager().dict()
 eventIdMap = {}
 filenames = {}
 
@@ -28,7 +29,7 @@ def recognition(filename, topic, eventId, stop_recognition_event):
 def listen(num_processes):
     # Start the worker processes
     for _ in range(num_processes):
-        p = multiprocessing.Process(target=worker, args=(task_queue_send_process, task_queue_receive_process, stop_event))
+        p = multiprocessing.Process(target=worker, args=(task_queue_send_process, task_queue_receive_process, stop_event, eventIdMapProccess))
         p.start()
         processes.append(p)
 
@@ -46,6 +47,7 @@ def listen(num_processes):
                 faces = data["faces"]
                 logging.info(f"--------- Face name {','.join(faces)} on {topic} eventId {eventId} -------------")
                 eventIdMap[data["eventId"]]["stop_event"].set()
+                eventIdMapProccess[data["eventId"]] = True
                 task_queue_receive_process.task_done()
             except queue.Empty:
                 continue
