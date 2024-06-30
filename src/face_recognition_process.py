@@ -132,7 +132,6 @@ def worker(task_queue, task_queue_receive_process, stop_event):
     while not stop_event.is_set():
         try:
             data = task_queue.get(timeout=1)  # Wait for a task from the queue
-            task_queue.task_done()
             if data is None:
                 break
             logging.debug(f"process file {data}")
@@ -141,6 +140,7 @@ def worker(task_queue, task_queue_receive_process, stop_event):
             if len(faces) > 0:
                 task_queue_receive_process.put({"eventId": eventId, "faces": faces})
             logging.debug(f"Task {data} completed")
+            task_queue.task_done()
         except queue.Empty:
             continue
         except Exception as e:

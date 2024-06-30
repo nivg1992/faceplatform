@@ -1,6 +1,9 @@
 import logging
 
-logging.basicConfig(level=logging.INFO, format=f'%(asctime)s %(processName)s %(message)s')
+logging.basicConfig(
+    level=os.environ.get('PF_LOG_LEVEL', 'INFO').upper(),
+    format=f'%(asctime)s %(processName)s %(message)s'
+    )
 
 import os
 import traceback

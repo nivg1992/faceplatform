@@ -33,7 +33,6 @@ def listen(num_processes):
         while not stop_event.is_set():
             try:
                 data = task_queue_receive_process.get(timeout=1)  # Wait for a task from the queue
-                task_queue_receive_process.task_done()
                 if data is None:
                     break
                 
@@ -42,7 +41,7 @@ def listen(num_processes):
                 faces = data["faces"]
                 logging.info(f"--------- Face name {','.join(faces)} on {topic} eventId {eventId} -------------")
                 eventIdMap[data["eventId"]]["stop_event"].set()
-                
+                task_queue_receive_process.task_done()
             except queue.Empty:
                 continue
         logging.info('Service face recognition stopped.')
