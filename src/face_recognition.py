@@ -14,11 +14,16 @@ stop_event = multiprocessing.Event()
 task_queue_send_process = multiprocessing.JoinableQueue()
 task_queue_receive_process = multiprocessing.JoinableQueue()
 eventIdMap = {}
+filenames = {}
 
 
 def recognition(filename, topic, eventId, stop_recognition_event):
-    eventIdMap[eventId] = {"stop_event": stop_recognition_event, "topic": topic}
-    task_queue_send_process.put({"fileName": filename, "topic": topic, "eventId": eventId})
+    if filenames[filename]:
+        logging.error(f"filename already scanned")
+    else:
+        eventIdMap[eventId] = {"stop_event": stop_recognition_event, "topic": topic}
+        filenames[filename] = topic
+        task_queue_send_process.put({"fileName": filename, "topic": topic, "eventId": eventId})
 
 def listen(num_processes):
     # Start the worker processes
