@@ -1,11 +1,11 @@
 import logging
+import os
 
 logging.basicConfig(
     level=os.environ.get('PF_LOG_LEVEL', 'INFO').upper(),
     format=f'%(asctime)s %(processName)s %(message)s'
     )
 
-import os
 import traceback
 import signal
 import threading
