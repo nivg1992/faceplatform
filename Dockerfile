@@ -1,8 +1,8 @@
 
 FROM python:latest AS builder
 
-ARG TARGETPLATFORM
-ARG BUILDPLATFORM
+ARG TARGETPLATFORM=linux/amd64
+ARG BUILDPLATFORM=linux/amd64
 
 RUN echo "I am running on $BUILDPLATFORM, building for $TARGETPLATFORM"
 

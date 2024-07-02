@@ -11,7 +11,7 @@ import logging
 import requests
 from datetime import datetime
 
-capture_window_ms = 500
+capture_window_ms = int(os.environ.get("PF_CAPTURE_WAITING_MS", 500))
 
 class CapturedImages:
     def __init__(self, output_folder, mqtt_broker, mqtt_port, mqtt_user, mqtt_password, go2rtc_url, go2rtc_map_file):
