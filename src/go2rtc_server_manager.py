@@ -5,13 +5,28 @@ import os
 import signal
 import yaml
 import json
+import requests
+from datetime import datetime
+from src.utils.singleton import singleton
 
+@singleton
 class Go2RTCServerManager:
-    def __init__(self, config_path):
+    def __init__(self):
         self.server_command = ["/app/go2rtc", "-config", "./go2rtc.yaml"]
-        self.config_path = config_path
         self.config_file = "./go2rtc.yaml"
         self.process = None
+        self.url = "http://localhost:1984"
+        self.go2rtc_server_enable = True
+
+    def configure(self, config_path, output_folder, go2rtc_url):
+        self.config_path = config_path
+        self.output_folder = output_folder
+        self.url = go2rtc_url
+        self.go2rtc_server_enable = False
+        if not os.path.exists(self.output_folder):
+            os.makedirs(self.output_folder)
+        
+        self.is_configure = True
 
     def generate_config_file(self):
         config_cameras = json.load(open(self.config_path))
@@ -25,6 +40,12 @@ class Go2RTCServerManager:
         logging.info(f"Generated config file at {self.config_file}")
 
     def start_server(self):
+        if not self.is_configure:
+            raise Exception("EventsManager not configured")
+
+        if not self.go2rtc_server_enable:
+            return
+
         self.generate_config_file()
         if self.process is None:
             self.process = subprocess.Popen(
@@ -41,6 +62,9 @@ class Go2RTCServerManager:
         return self.process is not None and self.process.poll() is None
 
     def stop_server(self):
+        if not self.go2rtc_server_enable:
+            return
+        
         if self.process:
             os.killpg(os.getpgid(self.process.pid), signal.SIGTERM)  # Send SIGTERM to the process group
             self.process.wait()  # Wait for the process to terminate
@@ -48,6 +72,25 @@ class Go2RTCServerManager:
             logging.info("Server stopped")
         else:
             logging.info("Server is not running")
+
+    def capture_image(self, eventId, source):
+        try:
+            # Perform the HTTP GET request
+            response = requests.get(f'{self.url}/api/frame.jpeg?src={source}')
+            response.raise_for_status()  # Check if the request was successful
+
+            # Get the current timestamp and format it
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S.%f")
+            
+            image_filename = os.path.join(self.output_folder, f'{eventId}_{timestamp}.jpg')
+
+            # Write the image to the disk
+            with open(image_filename, "wb") as file:
+                file.write(response.content)
+
+            return image_filename
+        except requests.exceptions.RequestException as e:
+            logging.error(f"An error occurred: {e}")
 
     def restart_server(self):
         self.stop_server()

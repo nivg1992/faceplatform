@@ -5,65 +5,55 @@ import logging
 import os
 from src.face_recognition_process import worker
 import multiprocessing
+from src.utils.singleton import singleton
 
-# Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
+@singleton
+class FaceRecognition:
+    def __init__(self):
+        self.processes = []
+        self.stop_event = multiprocessing.Event()
+        self.task_queue_send_process = multiprocessing.JoinableQueue()
+        self.task_queue_receive_process = multiprocessing.JoinableQueue()
+        self.eventIdMapProccess = multiprocessing.Manager().dict()
+        self.eventIdMap = {}
+    
+    def recognition(self, filename, event):
+        self.eventIdMap[event.id] = event
+        self.task_queue_send_process.put({"fileName": filename, "topic": event.topic, "eventId": event.id})
 
-processes = []
-stop_event = multiprocessing.Event()
-task_queue_send_process = multiprocessing.JoinableQueue()
-task_queue_receive_process = multiprocessing.JoinableQueue()
-eventIdMapProccess = multiprocessing.Manager().dict()
-eventIdMap = {}
-filenames = {}
+    def listen(self, num_processes):
+        # Start the worker processes
+        for _ in range(num_processes):
+            p = multiprocessing.Process(target=worker, args=(self.task_queue_send_process, self.task_queue_receive_process, self.stop_event, self.eventIdMapProccess))
+            p.start()
+            self.processes.append(p)
 
-
-def recognition(filename, topic, eventId, stop_recognition_event):
-    if filename in filenames:
-        logging.error(f"filename {filename} already scanned")
-    else:
-        eventIdMap[eventId] = {"stop_event": stop_recognition_event, "topic": topic}
-        filenames[filename] = topic
-        task_queue_send_process.put({"fileName": filename, "topic": topic, "eventId": eventId})
-
-def listen(num_processes):
-    # Start the worker processes
-    for _ in range(num_processes):
-        p = multiprocessing.Process(target=worker, args=(task_queue_send_process, task_queue_receive_process, stop_event, eventIdMapProccess))
-        p.start()
-        processes.append(p)
-
+        monitor_thread = threading.Thread(target=self.queue_monitor)
+        monitor_thread.start()
     # Monitor the task queue and submit tasks to the thread pool
-    def queue_monitor():
+    def queue_monitor(self):
         logging.info('Start face recognition Service')
-        while not stop_event.is_set():
+        while not self.stop_event.is_set():
             try:
-                data = task_queue_receive_process.get(timeout=1)  # Wait for a task from the queue
+                data = self.task_queue_receive_process.get(timeout=1)  # Wait for a task from the queue
                 if data is None:
                     break
                 
-                eventId = data["eventId"]
-                topic = eventIdMap[data["eventId"]]["topic"]
-                faces = data["faces"]
-                logging.info(f"--------- Face name {','.join(faces)} on {topic} eventId {eventId} -------------")
-                eventIdMap[data["eventId"]]["stop_event"].set()
-                eventIdMapProccess[data["eventId"]] = True
-                task_queue_receive_process.task_done()
+                if self.eventIdMap[data["eventId"]].file_status(data["filename"], data["detect"], data["faces"]):
+                    self.eventIdMapProccess[data["eventId"]] = True
+                    del self.eventIdMap[data["eventId"]]
+
+                self.task_queue_receive_process.task_done()
             except queue.Empty:
                 continue
         logging.info('Service face recognition stopped.')
 
-    # Start the queue monitor thread
-    monitor_thread = threading.Thread(target=queue_monitor)
-    monitor_thread.start()
+    def stop(self):
+        self.stop_event.set()
+        # Add None to the queue to unblock worker processes
+        for _ in self.processes:
+            self.task_queue_send_process.put(None)
 
-
-def stop():
-    stop_event.set()
-    # Add None to the queue to unblock worker processes
-    for _ in processes:
-        task_queue_send_process.put(None)
-
-    # Wait for all worker processes to finish
-    for p in processes:
-        p.join()
+        # Wait for all worker processes to finish
+        for p in self.processes:
+            p.join()

@@ -20,6 +20,7 @@ def extract_and_save_faces(image_path):
     from deepface import DeepFace
     from deepface.commons import image_utils
     import matplotlib.pyplot as plt
+    from keras import backend
     import cv2
     import uuid
     import traceback
@@ -33,21 +34,19 @@ def extract_and_save_faces(image_path):
         # Extract faces
         faces = DeepFace.extract_faces(img, detector_backend="dlib", expand_percentage=70,enforce_detection=False)
         logging.debug(f"extract_faces time: {time.process_time() - start}")
-
         # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
         # Save each face to a separate file
         for i, face in enumerate(faces):
-            output_path = os.path.join(extracted_faces_dir, f"face_{i}_{uuid.uuid4().hex}.jpg")
-            extractFace = face["face"]
             confidence = face["confidence"]
-            plt.imshow(extractFace)
-
-            extractFace = extractFace * 255
             
             if confidence < 0.1:
                 logging.debug(f"Face {i} skip by confidence: {confidence}")
                 continue
+            
+            output_path = os.path.join(extracted_faces_dir, f"face_{i}_{uuid.uuid4().hex}.jpg")
+            extractFace = face["face"]
+            extractFace = extractFace * 255
 
             cv2.imwrite(output_path, extractFace[:, :, ::-1])
 
@@ -55,7 +54,11 @@ def extract_and_save_faces(image_path):
 
             if len(storage_images) > 0:
                 #cv2.imwrite(output_path, face["face"])
-                dfs = DeepFace.find(img_path = output_path, db_path = faces_dir, detector_backend="dlib", model_name="Dlib")
+                try:
+                    dfs = DeepFace.find(img_path = output_path, db_path = faces_dir, detector_backend="skip", model_name="Dlib")
+                except ValueError as e:
+                    os.remove(output_path)
+                    continue
             else:
                 dfs = []
 
@@ -95,16 +98,20 @@ def extract_and_save_faces(image_path):
             logging.info(f"--------- Face {i} name {name} confidence: {confidence} -------------")
             os.remove(output_path)
 
+        backend.clear_session() 
         return face_result
     except Exception as e:
         logging.error(traceback.format_exc())
+        backend.clear_session() 
         return face_result
 
 def process_task(fileName):
     import traceback
 
     try:
+        start = time.process_time()
         face = extract_and_save_faces(fileName)
+        logging.info(f"extract_and_save_faces time: {time.process_time() - start}")
         os.remove(fileName)
         return face
     except Exception as e:
@@ -135,15 +142,19 @@ def worker(task_queue, task_queue_receive_process, stop_event, eventIdMap):
             if data is None:
                 break
 
-            logging.debug(f"process file {data}")
-            eventId = data['eventId']
-            if eventId not in eventIdMap:
-                faces = process_task(data['fileName'])  # Simulate a task taking some time to complete
-                if len(faces) > 0:
-                    task_queue_receive_process.put({"eventId": eventId, "faces": faces})
-                logging.debug(f"Task {data} completed")
+            filename = data['fileName']
+            if filename and os.path.isfile(filename):
+                logging.debug(f"process file {data}")
+                eventId = data['eventId']
+                if eventId not in eventIdMap:
+                    faces = process_task(filename)  # Simulate a task taking some time to complete
+                    return_message = {"eventId": eventId, "filename": filename ,"faces": faces, "detect": len(faces) > 0}
+                    task_queue_receive_process.put(return_message)
+                    logging.debug(f"Task {data} completed")
+                else:
+                    os.remove(filename)
             else:
-                os.remove(data['fileName'])
+                logging.error(f'provided file doen\'t exist {filename}')
 
             task_queue.task_done()
         except queue.Empty:
