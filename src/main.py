@@ -19,7 +19,7 @@ finished_event = threading.Event()
 capture_window_ms = int(os.environ.get("PF_CAPTURE_WAITING_MS", 1000))
 data_folder = os.environ.get("PF_DATA_FOLDER", "data")
 
-go2rtc_url = os.environ.get("PF_GO2RTC_URL", "http://localhost:1984")
+go2rtc_url = os.environ.get("PF_GO2RTC_URL", "internal")
 go2rtc_map_file = os.environ.get("PF_GO2RTC_MAP_FILE", "./cameras.json")
 mqtt_host = os.environ.get("PF_MQTT_HOST", "")
 mqtt_port = int(os.environ.get("PF_MQTT_PORT", 1883))

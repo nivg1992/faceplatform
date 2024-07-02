@@ -21,8 +21,10 @@ class Go2RTCServerManager:
     def configure(self, config_path, output_folder, go2rtc_url):
         self.config_path = config_path
         self.output_folder = output_folder
-        self.url = go2rtc_url
-        self.go2rtc_server_enable = False
+        if go2rtc_url != "internal":
+            self.url = go2rtc_url
+            self.go2rtc_server_enable = False
+            
         if not os.path.exists(self.output_folder):
             os.makedirs(self.output_folder)
         
