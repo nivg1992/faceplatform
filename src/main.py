@@ -10,7 +10,6 @@ import traceback
 import signal
 import threading
 from src.face_recognition import FaceRecognition
-from src.captured_imaged import CapturedImages
 from src.go2rtc_server_manager import Go2RTCServerManager
 from src.events_manager import EventsManager
 from src.inputs.mqtt_input import MQTTInput
@@ -59,23 +58,17 @@ def main():
         signal.signal(signal.SIGTERM, signal_handler)
 
         input_manager.init()
-        #server_manager.start_server()
         input_manager.listen()
         face_recognition.listen(num_processes)
-        #captured_imaged.listen()
 
         finished_event.wait()
         # end 
-        #server_manager.stop_server()
-        #captured_imaged.stop()
         input_manager.stop()
         events_manager.stop_all()
         face_recognition.stop()
     except Exception as e:
-        input_manager.stop()
-        #server_manager.stop_server()
         logging.error(traceback.format_exc())
-        #captured_imaged.stop()
+        input_manager.stop()
         events_manager.stop_all()
         face_recognition.stop()
 
