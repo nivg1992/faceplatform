@@ -15,10 +15,10 @@ ENV POETRY_NO_INTERACTION=1 \
 
 RUN case "$TARGETPLATFORM" in \
         "linux/amd64") \
-            URL="https://github.com/Kitware/CMake/releases/latest/download/cmake-3.29.6-linux-x86_64.tar.gz" \
+            URL="https://github.com/Kitware/CMake/releases/download/v3.30.0/cmake-3.30.0-linux-x86_64.tar.gz" \
             ;; \
         "linux/arm64") \
-            URL="https://github.com/Kitware/CMake/releases/latest/download/cmake-3.29.6-linux-aarch64.tar.gz" \
+            URL="https://github.com/Kitware/CMake/releases/download/v3.30.0/cmake-3.30.0-linux-aarch64.tar.gz" \
             ;; \
         *) \
             echo "Unsupported TARGETPLATFORM: $TARGETPLATFORM" && exit 1 \
