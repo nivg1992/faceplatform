@@ -33,13 +33,15 @@ Ensure you have the following prerequisites before installing FacePlatform:
    ```
 3. Configure your camera settings and identification details in `cameras.json`
    ```json
-   {
-    "mqtt_topic": {
-        "name": "camera_name",
-        "protocol": "rtsp",
-        "url": "rtspx://127.0.0.1:7441/id"
-    }
-   }
+   [
+      {
+         "type": "mqtt_trigger",
+         "name": "camera_name",
+         "topic": "topic",
+         "stream_protocol": "rtsp",
+         "stream_url": "rtsp://127.0.0.1:1879/id"
+      }
+   ]
    ```
 
 ### Build with Docker
