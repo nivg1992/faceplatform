@@ -4,15 +4,15 @@ import logging
 
 
 class Event:
-    def __init__(self, id, source, topic, event_manager):
+    def __init__(self, id, topic, event_manager):
           self.id = id
-          self.source = source
           self.topic = topic
           self.event_manager = event_manager
           self.stop_event = threading.Event()
           self.thread = None
           self.is_capture_running = False
           self.files = {}
+          self.is_event_done = False
           
     def start_capture(self):
          self.thread = threading.Thread(target=self.capture_loop, args=())
@@ -32,7 +32,7 @@ class Event:
                 start_time = time.time()
 
                 # Call Capture
-                filename = self.event_manager.go2rtc_server.capture_image(self.id, self.source)
+                filename = self.event_manager.input_manager.capture(self.id, self.topic)
                 self.files[filename] = ({"status": "send"})
                 self.event_manager.face_recognition.recognition(filename, self)
                 
@@ -42,7 +42,8 @@ class Event:
             except Exception as e:
                 logging.error(f"An error occurred: {e}")
 
-    def file_status(self, filename, detect, faces):
+    # return if detect
+    def file_recognize(self, filename, detect, faces):
         self.files[filename]["status"] = "done"
         self.files[filename]["detect"] = detect
         self.files[filename]["faces"] = faces
@@ -55,15 +56,20 @@ class Event:
 
         return False
     
+    def file_recognize_error(self, filename):
+        self.files[filename]["status"] = "error"
+        self.clean()
+
     def clean(self):
         if self.is_capture_running:
             return
         
         for key, value in self.files.items():
-            if value["status"] != "done":
+            if value["status"] == "send":
                 return
         
         self.event_manager.clean_event(self.id)
+        self.is_event_done = True
 
     def recognize_faces(self, faces):
         logging.info(f"--------- Face name {','.join(faces)} on {self.topic} eventId {self.id} -------------")

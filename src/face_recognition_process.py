@@ -95,7 +95,7 @@ def extract_and_save_faces(image_path):
                 os.makedirs(dest_fpath_images, exist_ok=True)
                 cv2.imwrite(dest_fpath_images + "/" + os.path.basename(image_path), img)
                 
-            logging.info(f"--------- Face {i} name {name} confidence: {confidence} -------------")
+            logging.debug(f"--------- Face {i} name {name} confidence: {confidence} -------------")
             os.remove(output_path)
 
         backend.clear_session() 
@@ -141,23 +141,27 @@ def worker(task_queue, task_queue_receive_process, stop_event, eventIdMap):
             data = task_queue.get(timeout=1)  # Wait for a task from the queue
             if data is None:
                 break
-
-            filename = data['fileName']
-            if filename and os.path.isfile(filename):
-                logging.debug(f"process file {data}")
-                eventId = data['eventId']
-                if eventId not in eventIdMap:
-                    faces = process_task(filename)  # Simulate a task taking some time to complete
-                    return_message = {"eventId": eventId, "filename": filename ,"faces": faces, "detect": len(faces) > 0}
-                    task_queue_receive_process.put(return_message)
-                    logging.debug(f"Task {data} completed")
+            
+            try:
+                filename = data['fileName']
+                if filename and os.path.isfile(filename):
+                    logging.debug(f"process file {data}")
+                    eventId = data['eventId']
+                    if eventId in eventIdMap and not eventIdMap[eventId]:
+                        faces = process_task(filename)  # Simulate a task taking some time to complete
+                        return_message = {"eventId": eventId, "filename": filename ,"faces": faces, "detect": len(faces) > 0}
+                        task_queue_receive_process.put(return_message)
+                        logging.debug(f"Task {data} completed")
+                    else:
+                        os.remove(filename)
                 else:
-                    os.remove(filename)
-            else:
-                logging.error(f'provided file doen\'t exist {filename}')
-
+                    logging.error(f'provided file doen\'t exist {filename}')
+            except Exception as e:
+                logging.error(traceback.format_exc())
+                return_message = {"eventId": eventId, "filename": filename,"detect": False, "error": True}
+                task_queue_receive_process.put(return_message)
+            
             task_queue.task_done()
         except queue.Empty:
             continue
-        except Exception as e:
-            logging.error(traceback.format_exc())
+        

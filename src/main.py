@@ -13,6 +13,9 @@ from src.face_recognition import FaceRecognition
 from src.captured_imaged import CapturedImages
 from src.go2rtc_server_manager import Go2RTCServerManager
 from src.events_manager import EventsManager
+from src.inputs.mqtt_input import MQTTInput
+from src.inputs.input_manager import InputManager
+import json
 
 finished_event = threading.Event()
 
@@ -30,15 +33,19 @@ captured_output_folder = os.environ.get("PF_CAPTURE_OUTPUT_FOLDER", "captured_im
 num_processes = int(os.environ.get("PF_FACE_RECOGNITION_PROCCESSES_COUNT", 1))
 captured_output_folder_full = os.path.join(data_folder, captured_output_folder)
 
-
-captured_imaged = CapturedImages()
-captured_imaged.configure(mqtt_host, mqtt_port, mqtt_user, mqtt_password)
+events_manager = EventsManager()
+events_manager.configure(capture_window_ms, captured_output_folder_full)
 
 server_manager = Go2RTCServerManager()
-server_manager.configure(go2rtc_map_file, captured_output_folder_full, go2rtc_url)
+server_manager.configure(captured_output_folder_full, go2rtc_url)
 
-events_manager = EventsManager()
-events_manager.configure(capture_window_ms, captured_output_folder_full, go2rtc_map_file)
+input_manager = InputManager()
+inputs_config_file = json.load(open(go2rtc_map_file))
+input_manager.configure(inputs_config_file, server_manager)
+
+mqtt_input = MQTTInput(mqtt_host, mqtt_port, mqtt_user, mqtt_password)
+
+input_manager.add_input("mqtt_trigger", mqtt_input)
 
 face_recognition = FaceRecognition()
 
@@ -51,21 +58,24 @@ def main():
         signal.signal(signal.SIGINT, signal_handler)
         signal.signal(signal.SIGTERM, signal_handler)
 
-        server_manager.start_server()
-
+        input_manager.init()
+        #server_manager.start_server()
+        input_manager.listen()
         face_recognition.listen(num_processes)
-        captured_imaged.listen()
+        #captured_imaged.listen()
 
         finished_event.wait()
         # end 
-        server_manager.stop_server()
-        captured_imaged.stop()
+        #server_manager.stop_server()
+        #captured_imaged.stop()
+        input_manager.stop()
         events_manager.stop_all()
         face_recognition.stop()
     except Exception as e:
-        server_manager.stop_server()
+        input_manager.stop()
+        #server_manager.stop_server()
         logging.error(traceback.format_exc())
-        captured_imaged.stop()
+        #captured_imaged.stop()
         events_manager.stop_all()
         face_recognition.stop()
 

@@ -18,8 +18,7 @@ class Go2RTCServerManager:
         self.url = "http://localhost:1984"
         self.go2rtc_server_enable = True
 
-    def configure(self, config_path, output_folder, go2rtc_url):
-        self.config_path = config_path
+    def configure(self, output_folder, go2rtc_url):
         self.output_folder = output_folder
         if go2rtc_url != "internal":
             self.url = go2rtc_url
@@ -30,15 +29,15 @@ class Go2RTCServerManager:
         
         self.is_configure = True
 
-    def generate_config_file(self):
-        config_cameras = json.load(open(self.config_path))
+    def set_streams(self, streams):
         config_go2rtc = {}
         config_go2rtc["streams"] = {}
-        for key, value in config_cameras.items():
-            config_go2rtc["streams"][value["name"]] = value["url"
-                                                            ]
+        for stream in streams:
+            config_go2rtc["streams"][stream["name"]] = stream["stream_url"]        
+
         with open(self.config_file, 'w') as file:
             yaml.dump(config_go2rtc, file)
+
         logging.info(f"Generated config file at {self.config_file}")
 
     def start_server(self):

@@ -3,6 +3,7 @@ import queue
 import threading
 import logging
 import os
+import traceback
 from src.face_recognition_process import worker
 import multiprocessing
 from src.utils.singleton import singleton
@@ -19,6 +20,7 @@ class FaceRecognition:
     
     def recognition(self, filename, event):
         self.eventIdMap[event.id] = event
+        self.eventIdMapProccess[event.id] = False
         self.task_queue_send_process.put({"fileName": filename, "topic": event.topic, "eventId": event.id})
 
     def listen(self, num_processes):
@@ -39,13 +41,22 @@ class FaceRecognition:
                 if data is None:
                     break
                 
-                if self.eventIdMap[data["eventId"]].file_status(data["filename"], data["detect"], data["faces"]):
-                    self.eventIdMapProccess[data["eventId"]] = True
+                if "error" in data:
+                    self.eventIdMap[data["eventId"]].file_recognize_error(data["filename"])
+                else:
+                    if self.eventIdMap[data["eventId"]].file_recognize(data["filename"], data["detect"], data["faces"]):
+                        self.eventIdMapProccess[data["eventId"]] = True
+                    
+                if self.eventIdMap[data["eventId"]].is_event_done:
+                    del self.eventIdMapProccess[data["eventId"]]
                     del self.eventIdMap[data["eventId"]]
 
                 self.task_queue_receive_process.task_done()
             except queue.Empty:
                 continue
+            except Exception as e:
+                logging.error(traceback.format_exc())
+
         logging.info('Service face recognition stopped.')
 
     def stop(self):
