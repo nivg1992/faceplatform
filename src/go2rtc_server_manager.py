@@ -47,7 +47,6 @@ class Go2RTCServerManager:
         if not self.go2rtc_server_enable:
             return
 
-        self.generate_config_file()
         if self.process is None:
             self.process = subprocess.Popen(
                 self.server_command,

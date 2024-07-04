@@ -12,7 +12,7 @@ import threading
 from src.face_recognition import FaceRecognition
 from src.go2rtc_server_manager import Go2RTCServerManager
 from src.events_manager import EventsManager
-from src.inputs.mqtt_input import MQTTInput
+
 from src.inputs.input_manager import InputManager
 import json
 
@@ -23,10 +23,6 @@ data_folder = os.environ.get("PF_DATA_FOLDER", "data")
 
 go2rtc_url = os.environ.get("PF_GO2RTC_URL", "internal")
 go2rtc_map_file = os.environ.get("PF_GO2RTC_MAP_FILE", "./cameras.json")
-mqtt_host = os.environ.get("PF_MQTT_HOST", "")
-mqtt_port = int(os.environ.get("PF_MQTT_PORT", 1883))
-mqtt_user = os.environ.get("PF_MQTT_USER", "")
-mqtt_password = os.environ.get("PF_MQTT_PASSWORD", "")
 
 captured_output_folder = os.environ.get("PF_CAPTURE_OUTPUT_FOLDER", "captured_images")
 num_processes = int(os.environ.get("PF_FACE_RECOGNITION_PROCCESSES_COUNT", 1))
@@ -41,10 +37,6 @@ server_manager.configure(captured_output_folder_full, go2rtc_url)
 input_manager = InputManager()
 inputs_config_file = json.load(open(go2rtc_map_file))
 input_manager.configure(inputs_config_file, server_manager)
-
-mqtt_input = MQTTInput(mqtt_host, mqtt_port, mqtt_user, mqtt_password)
-
-input_manager.add_input("mqtt_trigger", mqtt_input)
 
 face_recognition = FaceRecognition()
 

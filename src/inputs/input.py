@@ -9,7 +9,7 @@ class Input(ABC):
         self.streams = []
 
     @abstractmethod
-    def add_input(self, config):
+    def configure(self, config):
         pass
 
     @abstractmethod
@@ -24,8 +24,12 @@ class Input(ABC):
     def stop(self):
         pass
 
+    @abstractmethod
+    def capture(self):
+        pass
+
     def start_capture_topic(self, camera):
-        self.events_manager.start_capture_topic(camera)
+        self.events_manager.start_capture_topic(camera, self)
     
     def stop_capture_topic(self, camera):
         self.events_manager.stop_capture_topic(camera)

@@ -35,11 +35,19 @@ Ensure you have the following prerequisites before installing FacePlatform:
    ```json
    [
       {
-         "type": "mqtt_trigger",
-         "name": "camera_name",
-         "topic": "topic",
-         "stream_protocol": "rtsp",
-         "stream_url": "rtsp://127.0.0.1:1879/id"
+        "type": "mqtt_trigger",
+        "mqtt_host": "127.0.0.1",
+        "mqtt_port": 1883,
+        "mqtt_user": "user",
+        "mqtt_password": "password",
+        "cameras": [
+            {
+                "name": "camera1",
+                "topic": "camera_topic",
+                "stream_protocol": "rtsp",
+                "stream_url": "rtsp://127.0.0.1/aa"
+            }
+        ]
       }
    ]
    ```
@@ -61,9 +69,6 @@ Ensure you have the following prerequisites before installing FacePlatform:
         image: nivg1992/faceplatform
         environment:
         - PF_DATA_FOLDER=/data
-        - PF_MQTT_HOST=${mqtt_host}
-        - PF_MQTT_USER=${mqtt_user}
-        - PF_MQTT_PASSWORD=${mqtt_password}
         volumes:
         - ./cameras.json:/app/cameras.json
         - ./data:/data

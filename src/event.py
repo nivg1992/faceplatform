@@ -14,7 +14,8 @@ class Event:
           self.files = {}
           self.is_event_done = False
           
-    def start_capture(self):
+    def start_capture(self, input):
+         self.input = input
          self.thread = threading.Thread(target=self.capture_loop, args=())
          self.thread.start()
          self.is_capture_running = True
@@ -32,7 +33,7 @@ class Event:
                 start_time = time.time()
 
                 # Call Capture
-                filename = self.event_manager.input_manager.capture(self.id, self.topic)
+                filename = self.input.capture(self.id, self.topic)
                 self.files[filename] = ({"status": "send"})
                 self.event_manager.face_recognition.recognition(filename, self)
                 
