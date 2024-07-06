@@ -79,5 +79,16 @@ Ensure you have the following prerequisites before installing FacePlatform:
         - ./data:/data
    ```
 
+### Add new input
+1. **Create input file:** add an input file at `src/inputs`
+   
+2. **Subclass Input:** Begin by subclassing the `Input` abstract class to define your custom input source. Implement the required methods for initialization, configuration, stream management, event handling, and data capture.
+   
+3. **Utilize Events Management:** Use the events_manager property inherited from Input to manage events and start/stop data capture from specific topics or cameras using `start_capture_topic` and `stop_capture_topic`.
+
+4. **Add to input_manager:** After defining your input source, add it to the `input_manager` of FacePlatform using the `add_input` function. This step ensures that your input source is registered and can be accessed and controlled centrally within the application.
+
+5. **Testing and Integration:** Test your input source thoroughly to ensure compatibility and seamless integration with FacePlatform’s existing components. Refer to provided examples and documentation for assistance.
+
 ## License
 This project is licensed under the Apache License - see the [LICENSE](LICENSE) file for details.
