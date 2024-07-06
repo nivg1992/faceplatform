@@ -15,8 +15,13 @@ FacePlatform is a powerful tool designed to enhance your home security system by
 Ensure you have the following prerequisites before installing FacePlatform:
 
 - Python 3.10+
-- go2rtc server
-- cmake
+- [go2rtc server](https://github.com/AlexxIT/go2rtc?tab=readme-ov-file#go2rtc-docker) An easy way to get started is by pulling the Docker image and running it with a configuration like this: 
+  ```
+  streams:
+     camera: rtsp://127.0.0.1/token
+  ```
+- [cmake](https://github.com/Kitware/CMake/releases) Download and install the relevant binary
+- node22
 
 ### Installation
 
