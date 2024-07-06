@@ -1,6 +1,7 @@
 
 import time
 import logging
+import logging.config
 from multiprocessing import current_process
 import os
 
@@ -119,10 +120,39 @@ def process_task(fileName):
         return []
 
 def worker(task_queue, task_queue_receive_process, stop_event, eventIdMap):
+    LOGGING_CONFIG = {
+        "version": 1,
+        "disable_existing_loggers": True,
+        "formatters": {
+            "standard": {"format": "%(asctime)s [%(levelname)s] %(name)s: %(message)s"},
+        },
+        "handlers": {
+            "default": {
+                "level": "INFO",
+                "formatter": "standard",
+                "class": "logging.StreamHandler",
+                "stream": "ext://sys.stdout",  # Default is stderr
+            },
+        },
+        "loggers": {
+            "": {  # root logger
+                "level": "INFO",
+                "handlers": ["default"],
+                "propagate": False,
+            },
+            "tensorflow": {
+                "level": "DEBUG",
+                "handlers": ["default"],
+            },
+            
+        },
+    }
+
+    logging.config.dictConfig(LOGGING_CONFIG)
     # os.environ['TF_CPP_MIN_LOG_LEVEL'] = "2"
-    
     import traceback
     from deepface import DeepFace
+
     import queue
     # Configure logging for each worker process
 
