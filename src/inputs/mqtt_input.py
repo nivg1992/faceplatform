@@ -3,19 +3,21 @@ import logging
 from src.inputs.input import Input
 
 class MQTTInput(Input):
-    def __init__(self, host, port, user, password):
-        self.host = host
-        self.port = port
-        self.user = user
-        self.password = password
+    def __init__(self,go2rtc_server):
+        self.go2rtc_server = go2rtc_server
         self.client = mqtt.Client()
         self.topic_to_input = {}
         super().__init__()
     
-    def add_input(self, config):
-        self.inputs[config["name"]] = config["topic"]
-        self.topic_to_input[config["topic"]] = config["name"]
-        self.streams.append({"name": config["name"], "stream_protocol": config["stream_protocol"], "stream_url": config["stream_url"]})
+    def configure(self, config):
+        self.host = config["mqtt_host"]
+        self.port = config["mqtt_port"]
+        self.user = config["mqtt_user"]
+        self.password = config["mqtt_password"]
+        for camera in config["cameras"]:
+            self.inputs[camera["name"]] = camera["topic"]
+            self.topic_to_input[camera["topic"]] = camera["name"]
+            self.streams.append({"name": camera["name"], "stream_protocol": camera["stream_protocol"], "stream_url": camera["stream_url"]})
 
     def get_streams(self):
         return self.streams
@@ -43,6 +45,9 @@ class MQTTInput(Input):
                 super().stop_capture_topic(self.topic_to_input[topic])
         else:
             logging.info(f"Topic {topic} not recognized")
+
+    def capture(self, event_id, camera):
+        return self.go2rtc_server.capture_image(event_id, camera)
 
     def stop(self):
         self.client.loop_stop()  # Stop the MQTT client loop

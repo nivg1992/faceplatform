@@ -5,13 +5,11 @@ import threading
 from src.event import Event
 from src.face_recognition import FaceRecognition
 from src.utils.singleton import singleton
-from src.inputs.input_manager import InputManager
 
 @singleton
 class EventsManager:
      def __init__(self):
           self.face_recognition = FaceRecognition()
-          self.input_manager = InputManager()
           self.events = {}
           self.topics = {}
      
@@ -20,7 +18,7 @@ class EventsManager:
           self.output_folder = output_folder
           self.is_configure = True
 
-     def start_capture_topic(self, topic):
+     def start_capture_topic(self, topic, input):
           if not self.is_configure:
                raise Exception("EventsManager not configured")
           
@@ -32,7 +30,7 @@ class EventsManager:
                self.topics[topic] = eventId
                self.events[eventId] = event
                logging.info(f"Starting event thread for topic {topic} eventId {eventId}")
-               event.start_capture()
+               event.start_capture(input)
                return event
           
      def stop_capture_topic(self, topic):
