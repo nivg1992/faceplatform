@@ -71,10 +71,12 @@ Ensure you have the following prerequisites before installing FacePlatform:
    ```yaml
    services:
     faceplatform:
-        image: nivg1992/faceplatform
-        environment:
+      image: nivg1992/faceplatform
+      ports:
+        - 5000:5000
+      environment:
         - PF_DATA_FOLDER=/data
-        volumes:
+      volumes:
         - ./cameras.json:/app/cameras.json
         - ./data:/data
    ```

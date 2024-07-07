@@ -5,7 +5,7 @@ import { Image, Col, Row, Breadcrumb, Flex } from 'antd';
 import './faceGallery.css'
 import { DeleteOutlined } from '@ant-design/icons';
 
-const FaceGallery: React.FC<{faceName: string, onBack: Function}> = ({faceName, onBack}) => {
+const FaceGallery: React.FC<{faceName: string, onBack: () => void}> = ({faceName, onBack}) => {
     const [gallery, setGallery] = useState<string[]>([])
     useEffect(() => {
         async function getFacesGallery() {
@@ -13,7 +13,7 @@ const FaceGallery: React.FC<{faceName: string, onBack: Function}> = ({faceName, 
             setGallery(response.data)
         }
         getFacesGallery()
-    }, []);
+    }, [faceName]);
 
     const onDeleteFaceImg = async (faceName: string, imgIndex: number) => {
         await axios.delete(`${getBaseURL()}/faces/${faceName}/${gallery[imgIndex]}`)
