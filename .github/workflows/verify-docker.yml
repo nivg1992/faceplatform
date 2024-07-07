@@ -1,14 +1,12 @@
 name: verify docker build
 
 on:
-  push:
-    branches:
-      - '*'
-      - '!main'
+  pull_request:
     paths:
       - Dockerfile
       - poetry.lock
       - pyproject.toml
+      - .github/workflows/verify-docker.yml
 
 env:
   REGISTRY_IMAGE: nivg1992/faceplatform
