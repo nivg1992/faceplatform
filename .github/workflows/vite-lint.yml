@@ -17,4 +17,5 @@ jobs:
       - run: npm i -g pnpm
       - working-directory: ./client
         run: pnpm i --frozen-lockfile
-      - run: pnpm run lint
+      - working-directory: ./client
+        run: pnpm run lint

@@ -5,6 +5,10 @@ on:
     branches:
       - '*'
       - '!main'
+    paths:
+      - Dockerfile
+      - poetry.lock
+      - pyproject.toml
 
 env:
   REGISTRY_IMAGE: nivg1992/faceplatform
