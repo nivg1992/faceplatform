@@ -1,3 +1,12 @@
+FROM node:22-slim AS client_builder
+RUN npm i -g pnpm
+
+COPY client /app
+
+WORKDIR /app
+
+RUN pnpm i --frozen-lockfile
+RUN pnpm run build
 
 FROM python:latest AS builder
 
@@ -66,9 +75,10 @@ ENV VIRTUAL_ENV=/app/.venv \
     PATH="/app/.venv/bin:$PATH"
 
 COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
+COPY --from=client_builder /app/dist /app/client/dist
 
 WORKDIR /app
 
 COPY src /app/src
 
-ENTRYPOINT ["python", "-m", "src.main"]
+ENTRYPOINT ["/app/.venv/bin/python", "-m", "src.main"]

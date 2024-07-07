@@ -4,6 +4,7 @@ version = "0.1.0"
 description = ""
 authors = ["niv gabay <nivg1992@gmail.com>"]
 readme = "README.md"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -14,8 +15,10 @@ tf-keras = "^2.16.0"
 pyyaml = "^6.0.1"
 matplotlib = "^3.9.0"
 dlib = "^19.24.4"
+fastapi = "^0.111.0"
 
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+

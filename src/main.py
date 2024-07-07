@@ -1,10 +1,52 @@
 import logging
+import logging.config
 import os
 
-logging.basicConfig(
-    level=os.environ.get('PF_LOG_LEVEL', 'INFO').upper(),
-    format=f'%(asctime)s %(processName)s %(message)s'
-    )
+# logging.basicConfig(
+#     level=os.environ.get('PF_LOG_LEVEL', 'INFO').upper(),
+#     format=f'%(asctime)s %(processName)s %(message)s'
+#     )
+
+LOGGING_CONFIG = {
+    "version": 1,
+    "disable_existing_loggers": True,
+    "formatters": {
+        "standard": {"format": "%(asctime)s [%(levelname)s] %(name)s: %(message)s"},
+    },
+    "handlers": {
+        "default": {
+            "level": "INFO",
+            "formatter": "standard",
+            "class": "logging.StreamHandler",
+            "stream": "ext://sys.stdout",  # Default is stderr
+        },
+    },
+    "loggers": {
+        "": {  # root logger
+            "level": "INFO",
+            "handlers": ["default"],
+            "propagate": False,
+        },
+        "uvicorn.error": {
+            "level": "DEBUG",
+            "propagate": False,
+            "handlers": ["default"],
+        },
+        "uvicorn.access": {
+            "level": "DEBUG",
+            "propagate": False,
+            "handlers": ["default"],
+        },
+        "tensorflow": {
+            "level": "DEBUG",
+            "propagate": False,
+            "handlers": ["default"],
+        },
+        
+    },
+}
+
+logging.config.dictConfig(LOGGING_CONFIG)
 
 import traceback
 import signal
@@ -12,6 +54,13 @@ import threading
 from src.face_recognition import FaceRecognition
 from src.go2rtc_server_manager import Go2RTCServerManager
 from src.events_manager import EventsManager
+import uvicorn
+from src.uvicorn import Server
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from .routers import faces
+from starlette.responses import RedirectResponse
 
 from src.inputs.input_manager import InputManager
 import json
@@ -40,6 +89,26 @@ input_manager.configure(inputs_config_file, server_manager)
 
 face_recognition = FaceRecognition()
 
+app = FastAPI()
+app.include_router(faces.router)
+
+origins = [    
+    "http://localhost:5173",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.mount("", StaticFiles(directory="client/dist", html=True), name="client")
+
+@app.get('/')
+async def client():  return RedirectResponse(url="client")
+
 def main():
     try:
         logging.info("------------ boot ------------")
@@ -52,12 +121,15 @@ def main():
         input_manager.init()
         input_manager.listen()
         face_recognition.listen(num_processes)
+        config = uvicorn.Config("src.main:app", host="0.0.0.0", port=5000, log_level="info")
+        server = Server(config=config)
 
-        finished_event.wait()
-        # end 
-        input_manager.stop()
-        events_manager.stop_all()
-        face_recognition.stop()
+        with server.run_in_thread():
+            finished_event.wait()
+            # end 
+            input_manager.stop()
+            events_manager.stop_all()
+            face_recognition.stop()
     except Exception as e:
         logging.error(traceback.format_exc())
         input_manager.stop()

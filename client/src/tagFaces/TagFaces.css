@@ -1,0 +1,19 @@
+.face-flex {
+    margin: 2rem auto;
+}
+
+.face-delete {
+    position: absolute;
+    right: 0;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.face-delete:hover {
+    color: #00b96b;
+    transform: scale(1.2); /* Scale up on hover */
+}
+
+.face-img {
+    cursor: pointer;
+}
