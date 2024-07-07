@@ -40,7 +40,7 @@ const TagFaces: React.FC = () => {
 
     const renameFace = async (faceIndex: number) => {
         await axios.post(`${getBaseURL()}/faces/rename`, {source_face: faces[faceIndex].name,dest_face: facesValue[faces[faceIndex].name]});
-        let cloneFacesValue = {...facesValue};
+        const cloneFacesValue = {...facesValue};
         delete cloneFacesValue[faces[faceIndex].name];
         setFaces(faces.map((face, index) => index === faceIndex ? { ...face,  name: facesValue[face.name]} : face))
         setFacesValue(cloneFacesValue);
