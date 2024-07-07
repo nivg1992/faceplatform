@@ -1,0 +1,20 @@
+name: vite lint
+
+on:
+  push:
+    branches:
+      - '*'
+    paths:
+      - client/**
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - run: npm i -g pnpm
+      - working-directory: ./client
+        run: pnpm i --frozen-lockfile
+      - run: pnpm run lint
