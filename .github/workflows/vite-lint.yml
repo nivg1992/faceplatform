@@ -1,6 +1,5 @@
 name: vite lint
 
-
 on:
   pull_request:
     branches:
