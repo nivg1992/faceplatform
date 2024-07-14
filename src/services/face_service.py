@@ -1,15 +1,11 @@
 import os
 import shutil
 from glob import glob
-
-data_folder = os.environ.get("PF_DATA_FOLDER", "data")
-output_dir_faces = os.environ.get("PF_FACES_FOLDER", "faces")
-
-faces_dir = os.path.join(data_folder, output_dir_faces)
+from src.utils.paths import faces_path_full
 
 def get_all_faces():
     faces = []
-    for face_dir in glob(os.path.join(faces_dir, '*')):
+    for face_dir in glob(os.path.join(faces_path_full, '*')):
         face = {}
         pic_in_face = glob(os.path.join(face_dir, '*.jpg'))
         if len(pic_in_face) > 0:
@@ -20,27 +16,27 @@ def get_all_faces():
     return faces
 
 def get_face_path_by_name(name):
-    face_dir = os.path.join(faces_dir, name)
+    face_dir = os.path.join(faces_path_full, name)
     pic_in_face = glob(os.path.join(face_dir, '*.jpg'))
     if len(pic_in_face) > 0:
         return pic_in_face[0]
     
 def get_face_gallery(name):
     gallery = []
-    for img_file in glob(os.path.join(faces_dir, name, '*.jpg')):
+    for img_file in glob(os.path.join(faces_path_full, name, '*.jpg')):
         gallery.append(img_file.split('/')[-1])
 
     return gallery
 
 def get_face_path(name, path):
-    return os.path.join(faces_dir, name , path)
+    return os.path.join(faces_path_full, name , path)
 
 def rename_face(src_name, dest_name):
     if src_name.lower() == dest_name.lower():
         return
     
-    src_dir = os.path.join(faces_dir, src_name)
-    dest_dir = os.path.join(faces_dir, dest_name)
+    src_dir = os.path.join(faces_path_full, src_name)
+    dest_dir = os.path.join(faces_path_full, dest_name)
 
     if not os.path.isdir(src_dir):
         raise FileNotFoundError(f"The source directory '{src_dir}' does not exist.")
@@ -61,13 +57,13 @@ def rename_face(src_name, dest_name):
     shutil.rmtree(src_dir)
 
 def delete_face(face_name):
-    face_dir = os.path.join(faces_dir, face_name)
+    face_dir = os.path.join(faces_path_full, face_name)
     shutil.rmtree(face_dir)
 
 def delete_face_img(face_name, img):
-    face_dir = os.path.join(faces_dir, face_name)
+    face_dir = os.path.join(faces_path_full, face_name)
     if len(os.listdir(face_dir)) == 1:
         shutil.rmtree(face_dir)
     else:
-        img_path = os.path.join(faces_dir,face_name, img)
+        img_path = os.path.join(faces_path_full,face_name, img)
         os.remove(img_path)

@@ -7,6 +7,7 @@ import traceback
 from src.face_recognition_process import worker
 import multiprocessing
 from src.utils.singleton import singleton
+from src.utils.paths import extracted_faces_path_full, faces_path_full, events_path_full
 
 @singleton
 class FaceRecognition:
@@ -24,6 +25,15 @@ class FaceRecognition:
         self.task_queue_send_process.put({"fileName": filename, "topic": event.camera, "eventId": event.id})
 
     def listen(self, num_processes):
+        if not os.path.exists(extracted_faces_path_full):
+            os.makedirs(extracted_faces_path_full)
+        
+        if not os.path.exists(faces_path_full):
+            os.makedirs(faces_path_full)
+
+        if not os.path.exists(events_path_full):
+            os.makedirs(events_path_full)
+            
         # Start the worker processes
         for i in range(num_processes):
             p = multiprocessing.Process(name=f"FaceProcess-{i+1}",target=worker, args=(self.task_queue_send_process, self.task_queue_receive_process, self.stop_event, self.eventIdMapProccess))
