@@ -1,10 +1,9 @@
 import uuid
-import json
 import logging
-import threading
 from src.event import Event
 from src.face_recognition import FaceRecognition
 from src.utils.singleton import singleton
+import traceback
 
 @singleton
 class EventsManager:
@@ -39,8 +38,8 @@ class EventsManager:
           else:
                event = self.events[self.topics[topic]]
                logging.info(f"Stopping capture thread for topic {topic} eventId {event.id}")
-               event.stop_capture()
                del self.topics[topic]
+               event.stop_capture()
 
      def get_event_by_id(self, eventId):
           return self.events[eventId]
@@ -50,4 +49,7 @@ class EventsManager:
 
      def stop_all(self):
           for key, value in self.topics.items():
-               self.events[value].stop_capture()
+               try:
+                    self.events[value].stop_capture()
+               except Exception as e:
+                    logging.error(traceback.format_exc())

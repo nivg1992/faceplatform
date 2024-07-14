@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
 from pathlib import Path
-from src.services.face_service import get_all_faces, get_face_path, rename_face, delete_face, get_face_gallery, delete_face_img
+from src.services.face_service import get_all_faces, get_face_path, rename_face, delete_face, get_face_gallery, delete_face_img, get_face_path_by_name
 from pydantic import BaseModel
 
 
@@ -15,9 +15,16 @@ router = APIRouter()
 async def read_faces_controller():
     return get_all_faces()
 
-@router.get("/faces/{face_name}", tags=["faces"])
+@router.get("/faces/{face_name}/gallery", tags=["faces"])
 async def get_face_gallery_controller(face_name):
     return get_face_gallery(face_name)
+
+@router.get("/faces/{face_name}/img", tags=["faces"])
+async def get_face_img_controller(face_name):
+    face_path = Path(get_face_path_by_name(face_name))
+    if not face_path.is_file():
+        raise HTTPException(status_code=404, detail="face/path not found on the server")
+    return FileResponse(face_path)
 
 @router.get("/faces/{face_name}/{path}", tags=["faces"])
 async def get_face_controller(face_name, path):

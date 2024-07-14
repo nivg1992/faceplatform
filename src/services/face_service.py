@@ -4,10 +4,8 @@ from glob import glob
 
 data_folder = os.environ.get("PF_DATA_FOLDER", "data")
 output_dir_faces = os.environ.get("PF_FACES_FOLDER", "faces")
-output_dir_found_face = os.environ.get("PF_FOUND_FACE_FOLDER", "found_faces")
 
 faces_dir = os.path.join(data_folder, output_dir_faces)
-found_faces_dir = os.path.join(data_folder, output_dir_found_face)
 
 def get_all_faces():
     faces = []
@@ -21,6 +19,12 @@ def get_all_faces():
 
     return faces
 
+def get_face_path_by_name(name):
+    face_dir = os.path.join(faces_dir, name)
+    pic_in_face = glob(os.path.join(face_dir, '*.jpg'))
+    if len(pic_in_face) > 0:
+        return pic_in_face[0]
+    
 def get_face_gallery(name):
     gallery = []
     for img_file in glob(os.path.join(faces_dir, name, '*.jpg')):

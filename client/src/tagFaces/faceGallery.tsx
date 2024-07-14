@@ -9,7 +9,7 @@ const FaceGallery: React.FC<{faceName: string, onBack: () => void}> = ({faceName
     const [gallery, setGallery] = useState<string[]>([])
     useEffect(() => {
         async function getFacesGallery() {
-            const response = await axios.get(`${getBaseURL()}/faces/${faceName}`)
+            const response = await axios.get(`${getBaseURL()}/faces/${faceName}/gallery`)
             setGallery(response.data)
         }
         getFacesGallery()

@@ -1,53 +1,9 @@
-import logging
-import logging.config
+
 import os
+from src.utils.logger import init
+init()
 
-# logging.basicConfig(
-#     level=os.environ.get('PF_LOG_LEVEL', 'INFO').upper(),
-#     format=f'%(asctime)s %(processName)s %(message)s'
-#     )
-
-LOGGING_CONFIG = {
-    "version": 1,
-    "disable_existing_loggers": True,
-    "formatters": {
-        "standard": {"format": "%(asctime)s [%(levelname)s] %(name)s: %(message)s"},
-    },
-    "handlers": {
-        "default": {
-            "level": "INFO",
-            "formatter": "standard",
-            "class": "logging.StreamHandler",
-            "stream": "ext://sys.stdout",  # Default is stderr
-        },
-    },
-    "loggers": {
-        "": {  # root logger
-            "level": "INFO",
-            "handlers": ["default"],
-            "propagate": False,
-        },
-        "uvicorn.error": {
-            "level": "DEBUG",
-            "propagate": False,
-            "handlers": ["default"],
-        },
-        "uvicorn.access": {
-            "level": "DEBUG",
-            "propagate": False,
-            "handlers": ["default"],
-        },
-        "tensorflow": {
-            "level": "DEBUG",
-            "propagate": False,
-            "handlers": ["default"],
-        },
-        
-    },
-}
-
-logging.config.dictConfig(LOGGING_CONFIG)
-
+import logging
 import traceback
 import signal
 import threading
@@ -59,8 +15,9 @@ from src.uvicorn import Server
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from .routers import faces
+from .routers import faces, events
 from starlette.responses import RedirectResponse
+from src.dal.db import create_tables
 
 from src.inputs.input_manager import InputManager
 import json
@@ -89,26 +46,6 @@ input_manager.configure(inputs_config_file, server_manager)
 
 face_recognition = FaceRecognition()
 
-app = FastAPI()
-app.include_router(faces.router)
-
-origins = [    
-    "http://localhost:5173",
-]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-app.mount("", StaticFiles(directory="client/dist", html=True), name="client")
-
-@app.get('/')
-async def client():  return RedirectResponse(url="client")
-
 def main():
     try:
         logging.info("------------ boot ------------")
@@ -118,10 +55,12 @@ def main():
         signal.signal(signal.SIGINT, signal_handler)
         signal.signal(signal.SIGTERM, signal_handler)
 
+        create_tables()
+
         input_manager.init()
         input_manager.listen()
         face_recognition.listen(num_processes)
-        config = uvicorn.Config("src.main:app", host="0.0.0.0", port=5000, log_level="info")
+        config = uvicorn.Config("src.router:app", host="0.0.0.0", port=5000, log_level="info")
         server = Server(config=config)
 
         with server.run_in_thread():
