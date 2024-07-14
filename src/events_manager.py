@@ -38,8 +38,8 @@ class EventsManager:
           else:
                event = self.events[self.topics[topic]]
                logging.info(f"Stopping capture thread for topic {topic} eventId {event.id}")
-               event.stop_capture()
                del self.topics[topic]
+               event.stop_capture()
 
      def get_event_by_id(self, eventId):
           return self.events[eventId]
