@@ -19,7 +19,7 @@ def get_face_path_by_name(name):
     face_dir = os.path.join(faces_path_full, name)
     pic_in_face = glob(os.path.join(face_dir, '*.jpg'))
     if len(pic_in_face) > 0:
-        return pic_in_face[0]
+        return os.path.normpath(pic_in_face[0])
     
 def get_face_gallery(name):
     gallery = []
@@ -29,14 +29,14 @@ def get_face_gallery(name):
     return gallery
 
 def get_face_path(name, path):
-    return os.path.join(faces_path_full, name , path)
+    return os.path.normpath(os.path.join(faces_path_full, name , path))
 
 def rename_face(src_name, dest_name):
     if src_name.lower() == dest_name.lower():
         return
     
-    src_dir = os.path.join(faces_path_full, src_name)
-    dest_dir = os.path.join(faces_path_full, dest_name)
+    src_dir = os.path.normpath(os.path.join(faces_path_full, src_name))
+    dest_dir = os.path.normpath(os.path.join(faces_path_full, dest_name))
 
     if not os.path.isdir(src_dir):
         raise FileNotFoundError(f"The source directory '{src_dir}' does not exist.")
@@ -47,8 +47,8 @@ def rename_face(src_name, dest_name):
 
     # Move all files from source to destination
     for filename in os.listdir(src_dir):
-        src_file = os.path.join(src_dir, filename)
-        dest_file = os.path.join(dest_dir, filename)
+        src_file = os.path.normpath(os.path.join(src_dir, filename))
+        dest_file = os.path.normpath(os.path.join(dest_dir, filename))
 
         # Check if it's a file before moving (skip directories)
         if os.path.isfile(src_file):
@@ -57,13 +57,13 @@ def rename_face(src_name, dest_name):
     shutil.rmtree(src_dir)
 
 def delete_face(face_name):
-    face_dir = os.path.join(faces_path_full, face_name)
+    face_dir = os.path.normpath(os.path.join(faces_path_full, face_name))
     shutil.rmtree(face_dir)
 
 def delete_face_img(face_name, img):
-    face_dir = os.path.join(faces_path_full, face_name)
+    face_dir = os.path.normpath(os.path.join(faces_path_full, face_name))
     if len(os.listdir(face_dir)) == 1:
         shutil.rmtree(face_dir)
     else:
-        img_path = os.path.join(faces_path_full,face_name, img)
+        img_path = os.path.normpath(os.path.join(faces_path_full,face_name, img))
         os.remove(img_path)

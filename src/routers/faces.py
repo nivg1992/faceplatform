@@ -4,7 +4,6 @@ from pathlib import Path
 from src.services.face_service import get_all_faces, get_face_path, rename_face, delete_face, get_face_gallery, delete_face_img, get_face_path_by_name
 from pydantic import BaseModel
 
-
 class RenameFace(BaseModel):
     source_face: str
     dest_face: str
