@@ -21,16 +21,16 @@ class FaceRecognition:
     def recognition(self, filename, event):
         self.eventIdMap[event.id] = event
         self.eventIdMapProccess[event.id] = False
-        self.task_queue_send_process.put({"fileName": filename, "topic": event.topic, "eventId": event.id})
+        self.task_queue_send_process.put({"fileName": filename, "topic": event.camera, "eventId": event.id})
 
     def listen(self, num_processes):
         # Start the worker processes
-        for _ in range(num_processes):
-            p = multiprocessing.Process(target=worker, args=(self.task_queue_send_process, self.task_queue_receive_process, self.stop_event, self.eventIdMapProccess))
+        for i in range(num_processes):
+            p = multiprocessing.Process(name=f"FaceProcess-{i+1}",target=worker, args=(self.task_queue_send_process, self.task_queue_receive_process, self.stop_event, self.eventIdMapProccess))
             p.start()
             self.processes.append(p)
 
-        monitor_thread = threading.Thread(target=self.queue_monitor)
+        monitor_thread = threading.Thread(name='FaceCallback',target=self.queue_monitor)
         monitor_thread.start()
     # Monitor the task queue and submit tasks to the thread pool
     def queue_monitor(self):

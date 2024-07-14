@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Outlet, NavLink, useLocation  } from "react-router-dom";
 import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
@@ -8,50 +9,59 @@ import {
 } from '@ant-design/icons';
 import { Button, Layout, Menu, theme, Typography, Flex  } from 'antd';
 import './App.css'
-import TagFaces from './tagFaces/TagFaces'
+
 
 const { Title } = Typography;
 const { Header, Sider, Content, Footer } = Layout;
 
 function App() {
+  const location = useLocation();
+  const { hash, pathname, search } = location;
   const [collapsed, setCollapsed] = useState(true);
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
 
   return (
-    <Layout style={{height:"100vh"}}>
+    <Layout style={{minHeight:"100vh"}} hasSider>
       <Sider 
+        style={{ padding: 0, background: colorBgContainer }}
         trigger={null} 
         collapsible 
-        style={{ padding: 0, background: colorBgContainer }}
         breakpoint="lg"
         className="hideOnMobile"
         collapsed={collapsed}>
         <Menu
           mode="inline"
           style={{ padding: 0, background: colorBgContainer, height: "100%" }}
-          defaultSelectedKeys={['1']}
+          defaultSelectedKeys={['/']}
+          selectedKeys={pathname}
           items={[
             {
-              key: '1',
+              key: '/',
               icon: <UserOutlined />,
-              label: 'Tag Faces',
+              label: (<NavLink to="/">
+                Tag Faces
+              </NavLink>),
             },
             {
-              key: '2',
+              key: '/events',
               icon: <VideoCameraOutlined />,
-              label: 'Events',
+              label: (<NavLink to="/events">
+                        Events
+                      </NavLink>),
             },
             {
-              key: '3',
+              key: '/Integration',
               icon: <UploadOutlined />,
-              label: 'Integration',
+              label: (<NavLink to="/integration">
+                Integration
+              </NavLink>),
             },
           ]}
         />
       </Sider>
-      <Layout>
+      <Layout >
         <Header style={{ padding: 0, background: colorBgContainer }}>
           <Flex>
             <Button
@@ -70,15 +80,18 @@ function App() {
           
         </Header>
         <Content
-          style={{
-            margin: '24px 16px',
-            padding: 24,
-            minHeight: 280,
-            background: colorBgContainer,
-            borderRadius: borderRadiusLG,
-          }}
+          style={{ margin: '24px 16px 0', overflow: 'initial' }}
         >
-          <TagFaces />
+          <div
+            style={{
+              padding: 24,
+              textAlign: 'center',
+              background: colorBgContainer,
+              borderRadius: borderRadiusLG,
+            }}
+          >
+          <Outlet />
+          </div>
         </Content>
         <Footer style={{ textAlign: 'center' }}>
           FacePlatform ©{new Date().getFullYear()} Created by nivg1992

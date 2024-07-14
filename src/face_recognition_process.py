@@ -8,16 +8,16 @@ import os
 data_folder = os.environ.get("PF_DATA_FOLDER", "data")
 output_dir = os.environ.get("PF_EXTRACTED_FACES_FOLDER", "extracted_faces")
 output_dir_faces = os.environ.get("PF_FACES_FOLDER", "faces")
-output_dir_found_face = os.environ.get("PF_FOUND_FACE_FOLDER", "found_faces")
+output_dir_events = os.environ.get("PF_EVENTS_FOLDER", "events")
 
 extracted_faces_dir = os.path.join(data_folder, output_dir)
 faces_dir = os.path.join(data_folder, output_dir_faces)
-found_faces_dir = os.path.join(data_folder, output_dir_found_face)
+events_dir = os.path.join(data_folder, output_dir_events)
 
 os.environ["DEEPFACE_HOME"] = os.path.join(data_folder, ".deepface")
 
 
-def extract_and_save_faces(image_path):
+def extract_and_save_faces(image_path, eventId):
     from deepface import DeepFace
     from deepface.commons import image_utils
     import matplotlib.pyplot as plt
@@ -64,37 +64,20 @@ def extract_and_save_faces(image_path):
                 dfs = []
 
             name = ""
-            if len(dfs) > 0:
-                df = dfs[0]
-                if not df.empty and df.shape[0] > 0:
-                    identity = df.iloc[0]["identity"]
-                    name = identity.split("/")[-2]
-                    # distance = float(df['distance'])
-                    # threshold = float(df['threshold'])
-                    dest_fpath_images = os.path.join(found_faces_dir, name)
-                    os.makedirs(dest_fpath_images, exist_ok=True)
-                    cv2.imwrite(dest_fpath_images + "/" + os.path.basename(image_path), img)
-                    shutil.copy(output_path, dest_fpath_images + f"/face-{i}-" + os.path.basename(image_path))
-                    face_result.append(name)
-                else:
-                    name = "unknown-" + uuid.uuid4().hex
-                    dest_fpath = os.path.join(faces_dir, name)
-                    os.makedirs(dest_fpath, exist_ok=True)
-                    shutil.copy(output_path, dest_fpath + "/" + uuid.uuid4().hex + ".jpg")
+            if len(dfs) > 0 and not dfs[0].empty and dfs[0].shape[0] > 0:
+                identity = dfs[0].iloc[0]["identity"]
+                name = identity.split("/")[-2]
 
-                    dest_fpath_images = os.path.join(found_faces_dir, name)
-                    os.makedirs(dest_fpath_images, exist_ok=True)
-                    cv2.imwrite(dest_fpath_images + "/" + os.path.basename(image_path), img)
-                    shutil.copy(output_path, dest_fpath_images + f"/face-{i}" + os.path.basename(image_path))
+                img_path = save_event(eventId, name, img)
+                if not name.startswith('unknown-'):
+                    face_result.append({"name":name, "confidence": confidence, "path": img_path})
             else:                
                 name = "unknown-" + uuid.uuid4().hex
                 dest_fpath = os.path.join(faces_dir, name)
                 os.makedirs(dest_fpath, exist_ok=True)
                 shutil.copy(output_path, dest_fpath + "/" + uuid.uuid4().hex + ".jpg")
 
-                dest_fpath_images = os.path.join(found_faces_dir, name)
-                os.makedirs(dest_fpath_images, exist_ok=True)
-                cv2.imwrite(dest_fpath_images + "/" + os.path.basename(image_path), img)
+                save_event(eventId, name, img)
                 
             logging.debug(f"--------- Face {i} name {name} confidence: {confidence} -------------")
             os.remove(output_path)
@@ -106,12 +89,23 @@ def extract_and_save_faces(image_path):
         backend.clear_session() 
         return face_result
 
-def process_task(fileName):
+def save_event(event_id, faceName, img):
+    import cv2
+    from datetime import datetime
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S.%f")
+    dest_fpath_images = os.path.join(events_dir, event_id)
+    os.makedirs(dest_fpath_images, exist_ok=True)
+    img_path = os.path.join(dest_fpath_images, f'{event_id}_{faceName}_{timestamp}.jpg')
+    cv2.imwrite(img_path, img)
+    return img_path
+
+def process_task(fileName, eventId):
     import traceback
 
     try:
         start = time.process_time()
-        face = extract_and_save_faces(fileName)
+        face = extract_and_save_faces(fileName, eventId)
         logging.info(f"extract_and_save_faces time: {time.process_time() - start}")
         os.remove(fileName)
         return face
@@ -120,36 +114,9 @@ def process_task(fileName):
         return []
 
 def worker(task_queue, task_queue_receive_process, stop_event, eventIdMap):
-    LOGGING_CONFIG = {
-        "version": 1,
-        "disable_existing_loggers": True,
-        "formatters": {
-            "standard": {"format": "%(asctime)s [%(levelname)s] %(name)s: %(message)s"},
-        },
-        "handlers": {
-            "default": {
-                "level": "INFO",
-                "formatter": "standard",
-                "class": "logging.StreamHandler",
-                "stream": "ext://sys.stdout",  # Default is stderr
-            },
-        },
-        "loggers": {
-            "": {  # root logger
-                "level": "INFO",
-                "handlers": ["default"],
-                "propagate": False,
-            },
-            "tensorflow": {
-                "level": "DEBUG",
-                "handlers": ["default"],
-            },
-            
-        },
-    }
-
-    logging.config.dictConfig(LOGGING_CONFIG)
-    # os.environ['TF_CPP_MIN_LOG_LEVEL'] = "2"
+    from src.utils.logger import init
+    init()
+    os.environ['TF_CPP_MIN_LOG_LEVEL'] = "2"
     import traceback
     from deepface import DeepFace
 
@@ -162,8 +129,8 @@ def worker(task_queue, task_queue_receive_process, stop_event, eventIdMap):
     if not os.path.exists(faces_dir):
         os.makedirs(faces_dir)
 
-    if not os.path.exists(found_faces_dir):
-        os.makedirs(found_faces_dir)
+    if not os.path.exists(events_dir):
+        os.makedirs(events_dir)
 
     logging.info(f"Start face recognition process")
     while not stop_event.is_set():
@@ -178,11 +145,16 @@ def worker(task_queue, task_queue_receive_process, stop_event, eventIdMap):
                     logging.debug(f"process file {data}")
                     eventId = data['eventId']
                     if eventId in eventIdMap and not eventIdMap[eventId]:
-                        faces = process_task(filename)  # Simulate a task taking some time to complete
+                        faces = process_task(filename, eventId)  # Simulate a task taking some time to complete
                         return_message = {"eventId": eventId, "filename": filename ,"faces": faces, "detect": len(faces) > 0}
-                        task_queue_receive_process.put(return_message)
+                        if eventId in eventIdMap and not eventIdMap[eventId]:
+                            task_queue_receive_process.put(return_message)
+                        else:
+                            task_queue_receive_process.put({ "eventId": eventId, "filename": filename, "faces": [], "detect": False })
+
                         logging.debug(f"Task {data} completed")
                     else:
+                        task_queue_receive_process.put({ "eventId": eventId, "filename": filename, "faces": [], "detect": False })
                         os.remove(filename)
                 else:
                     logging.error(f'provided file doen\'t exist {filename}')

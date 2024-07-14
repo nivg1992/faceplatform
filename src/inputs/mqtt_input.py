@@ -1,5 +1,6 @@
 import paho.mqtt.client as mqtt
 import logging
+import traceback
 from src.inputs.input import Input
 
 class MQTTInput(Input):
@@ -35,16 +36,19 @@ class MQTTInput(Input):
             self.client.subscribe(value)
 
     def on_message(self, client, userdata, message):
-        topic = message.topic
-        if topic in self.topic_to_input:
-            msg = message.payload.decode()
+        try:
+            topic = message.topic
+            if topic in self.topic_to_input:
+                msg = message.payload.decode()
 
-            if msg == "on":
-                super().start_capture_topic(self.topic_to_input[topic])
-            elif msg == "off":
-                super().stop_capture_topic(self.topic_to_input[topic])
-        else:
-            logging.info(f"Topic {topic} not recognized")
+                if msg == "on":
+                    super().start_capture_topic(self.topic_to_input[topic])
+                elif msg == "off":
+                    super().stop_capture_topic(self.topic_to_input[topic])
+            else:
+                logging.info(f"Topic {topic} not recognized")
+        except Exception as e:
+            logging.error(traceback.format_exc())
 
     def capture(self, event_id, camera):
         return self.go2rtc_server.capture_image(event_id, camera)
