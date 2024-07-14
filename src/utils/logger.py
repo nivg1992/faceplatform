@@ -1,5 +1,8 @@
 import logging
 import logging.config
+import os
+
+log_level = os.environ.get("PF_LOG_LEVEL", "INFO")
 
 def init():
     LOGGING_CONFIG = {
@@ -10,7 +13,7 @@ def init():
         },
         "handlers": {
             "console": {
-                "level": "DEBUG",
+                "level": log_level,
                 "formatter": "standard",
                 "class": "logging.StreamHandler",
                 "stream": "ext://sys.stdout",  # Default is stderr
