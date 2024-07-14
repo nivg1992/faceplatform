@@ -15,7 +15,7 @@ tf-keras = "^2.16.0"
 pyyaml = "^6.0.1"
 matplotlib = "^3.9.0"
 dlib = "^19.24.4"
-fastapi = "^0.111.0"
+fastapi = "^0.111.1"
 peewee = "^3.17.6"
 
 
