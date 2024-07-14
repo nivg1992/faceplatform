@@ -12,9 +12,8 @@ class EventsManager:
           self.events = {}
           self.topics = {}
      
-     def configure(self, capture_window, output_folder):
+     def configure(self, capture_window):
           self.capture_window = capture_window
-          self.output_folder = output_folder
           self.is_configure = True
 
      def start_capture_topic(self, topic, input):

@@ -5,11 +5,6 @@ from playhouse.shortcuts import model_to_dict
 from src.dal.db import db
 from src.dal.event import Event as EventDAL, FaceEvent
 
-data_folder = os.environ.get("PF_DATA_FOLDER", "data")
-output_dir_events = os.environ.get("PF_FACES_FOLDER", "events")
-
-events_dir = os.path.join(data_folder, output_dir_events)
-
 def get_all_detect_events():
     try:
         events = (EventDAL.select(EventDAL)

@@ -4,18 +4,9 @@ import logging
 import logging.config
 from multiprocessing import current_process
 import os
+from src.utils.paths import extracted_faces_path_full, faces_path_full, events_path_full, deepface_path_full
 
-data_folder = os.environ.get("PF_DATA_FOLDER", "data")
-output_dir = os.environ.get("PF_EXTRACTED_FACES_FOLDER", "extracted_faces")
-output_dir_faces = os.environ.get("PF_FACES_FOLDER", "faces")
-output_dir_events = os.environ.get("PF_EVENTS_FOLDER", "events")
-
-extracted_faces_dir = os.path.join(data_folder, output_dir)
-faces_dir = os.path.join(data_folder, output_dir_faces)
-events_dir = os.path.join(data_folder, output_dir_events)
-
-os.environ["DEEPFACE_HOME"] = os.path.join(data_folder, ".deepface")
-
+os.environ["DEEPFACE_HOME"] = deepface_path_full
 
 def extract_and_save_faces(image_path, eventId):
     from deepface import DeepFace
@@ -45,18 +36,18 @@ def extract_and_save_faces(image_path, eventId):
                 logging.debug(f"Face {i} skip by confidence: {confidence}")
                 continue
             
-            output_path = os.path.join(extracted_faces_dir, f"face_{i}_{uuid.uuid4().hex}.jpg")
+            output_path = os.path.join(extracted_faces_path_full, f"face_{i}_{uuid.uuid4().hex}.jpg")
             extractFace = face["face"]
             extractFace = extractFace * 255
 
             cv2.imwrite(output_path, extractFace[:, :, ::-1])
 
-            storage_images = image_utils.list_images(path=faces_dir)
+            storage_images = image_utils.list_images(path=faces_path_full)
 
             if len(storage_images) > 0:
                 #cv2.imwrite(output_path, face["face"])
                 try:
-                    dfs = DeepFace.find(img_path = output_path, db_path = faces_dir, detector_backend="skip", model_name="Dlib")
+                    dfs = DeepFace.find(img_path = output_path, db_path = faces_path_full, detector_backend="skip", model_name="Dlib")
                 except ValueError as e:
                     os.remove(output_path)
                     continue
@@ -73,7 +64,7 @@ def extract_and_save_faces(image_path, eventId):
                     face_result.append({"name":name, "confidence": confidence, "path": img_path})
             else:                
                 name = "unknown-" + uuid.uuid4().hex
-                dest_fpath = os.path.join(faces_dir, name)
+                dest_fpath = os.path.join(faces_path_full, name)
                 os.makedirs(dest_fpath, exist_ok=True)
                 shutil.copy(output_path, dest_fpath + "/" + uuid.uuid4().hex + ".jpg")
 
@@ -94,7 +85,7 @@ def save_event(event_id, faceName, img):
     from datetime import datetime
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S.%f")
-    dest_fpath_images = os.path.join(events_dir, event_id)
+    dest_fpath_images = os.path.join(events_path_full, event_id)
     os.makedirs(dest_fpath_images, exist_ok=True)
     img_path = os.path.join(dest_fpath_images, f'{event_id}_{faceName}_{timestamp}.jpg')
     cv2.imwrite(img_path, img)
@@ -122,15 +113,6 @@ def worker(task_queue, task_queue_receive_process, stop_event, eventIdMap):
 
     import queue
     # Configure logging for each worker process
-
-    if not os.path.exists(extracted_faces_dir):
-        os.makedirs(extracted_faces_dir)
-    
-    if not os.path.exists(faces_dir):
-        os.makedirs(faces_dir)
-
-    if not os.path.exists(events_dir):
-        os.makedirs(events_dir)
 
     logging.info(f"Start face recognition process")
     while not stop_event.is_set():

@@ -1,9 +1,7 @@
 from peewee import *
 from playhouse.sqlite_ext import SqliteExtDatabase
 import os
-
-data_folder = os.environ.get("PF_DATA_FOLDER", "data")
-db_path = os.path.join(data_folder, "faceplatform.db")
+from src.utils.paths import db_path
 
 db = SqliteExtDatabase(db_path, pragmas=(
     ('cache_size', -1024 * 64),  # 64MB page-cache.
