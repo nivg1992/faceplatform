@@ -10,10 +10,10 @@ router = APIRouter()
 async def get_events():
     return get_all_detect_events()
 
-@router.get("/events/{event_id}/{name}", tags=["events"])
-async def get_event_face_img(event_id, name):
+@router.get("/events/{event_id}/img", tags=["events"])
+async def get_event_face_img(event_id):
     try:
-        path = get_event_picture_path(event_id, name)
+        path = get_event_picture_path(event_id)
         return FileResponse(path)
     except ValueError:
-        raise HTTPException(status_code=404, detail=f"the event {event_id} and the name {name} not found")
+        raise HTTPException(status_code=404, detail=f"the event {event_id} not found")

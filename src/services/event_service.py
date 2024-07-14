@@ -13,7 +13,8 @@ events_dir = os.path.join(data_folder, output_dir_events)
 def get_all_detect_events():
     try:
         events = (EventDAL.select(EventDAL)
-            .where(EventDAL.detect == True))
+            .where(EventDAL.detect == True)
+            .order_by(EventDAL.created.desc()))
             #.join_from(EventDAL, FaceEvent, JOIN.LEFT_OUTER))
             #.join(FaceEvent, on=(EventDAL.id == FaceEvent.event), join_type=JOIN.LEFT_OUTER)).get()
 
@@ -22,11 +23,11 @@ def get_all_detect_events():
         return []
     
     
-def get_event_picture_path(event_id, name):
+def get_event_picture_path(event_id):
     try:
         face_path = (EventDAL.select(FaceEvent.path)
             .join_from(EventDAL, FaceEvent, JOIN.INNER)
-            .where(EventDAL.id == event_id, FaceEvent.name == name)).get()
+            .where(EventDAL.id == event_id)).get()
 
         return face_path.faceevent.path
     except DoesNotExist:
