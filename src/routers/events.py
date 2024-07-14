@@ -3,6 +3,7 @@ from fastapi.responses import FileResponse
 from pathlib import Path
 from pydantic import BaseModel
 from src.services.event_service import get_all_detect_events, get_event_picture_path
+import os
 
 router = APIRouter()
 

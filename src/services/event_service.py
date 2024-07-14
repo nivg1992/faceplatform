@@ -24,7 +24,7 @@ def get_event_picture_path(event_id):
             .join_from(EventDAL, FaceEvent, JOIN.INNER)
             .where(EventDAL.id == event_id)).get()
 
-        return face_path.faceevent.path
+        return os.path.normpath(face_path.faceevent.path)
     except DoesNotExist:
         raise ValueError('not found')
 
