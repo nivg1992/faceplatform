@@ -16,7 +16,7 @@ const { Header, Sider, Content, Footer } = Layout;
 
 function App() {
   const location = useLocation();
-  const { hash, pathname, search } = location;
+  const { pathname } = location;
   const [collapsed, setCollapsed] = useState(true);
   const {
     token: { colorBgContainer, borderRadiusLG },
@@ -35,7 +35,7 @@ function App() {
           mode="inline"
           style={{ padding: 0, background: colorBgContainer, height: "100%" }}
           defaultSelectedKeys={['/']}
-          selectedKeys={pathname}
+          selectedKeys={[pathname]}
           items={[
             {
               key: '/',
