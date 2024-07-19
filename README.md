@@ -21,6 +21,10 @@ Ensure you have the following prerequisites before installing FacePlatform:
      camera: rtsp://127.0.0.1/token
   ```
 - [cmake](https://github.com/Kitware/CMake/releases) Download and install the relevant binary
+- ffmpeg    
+   ```bash
+      apt install ffmpeg
+   ```
 - node22
 
 ### Installation
