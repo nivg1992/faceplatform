@@ -25,8 +25,6 @@ class InputManager:
             self.inputs.append(unifi_input)
 
     def init(self):
-        print('input manager init')
-        print(self.configs)
         if not self.is_configure:
             raise Exception("InputManager not configured")
         

@@ -9,7 +9,7 @@ from src.inputs.input import Input
 
 class UnifiInput(Input):
     def __init__(self, go2rtc_server):
-        self.go2trc_server = go2rtc_server
+        self.go2rtc_server = go2rtc_server
         self.running = False
         self.headers = {}
         self.cameras = {}
@@ -67,7 +67,7 @@ class UnifiInput(Input):
                     'rtspAlias': channel['rtspAlias']
                 } for channel in camera['channels']}
                 self.cameras[camera['id']] = {
-                    'name': camera['name'],
+                    'name': camera['name'].replace(" ", ""),
                     'id': camera['id'],
                     'mac': camera['mac'],
                     'state': camera['state'],
@@ -80,7 +80,7 @@ class UnifiInput(Input):
 
     def get_rtsp_link(self, rtsp_alias: str) -> str:
         """Generate an RTSP link for a camera."""
-        return self.host.replace('https', 'rtsp') + f':7441/{rtsp_alias}?enableSrtp'
+        return self.host.replace('https', 'rtspx') + f':7441/{rtsp_alias}'
 
     @staticmethod
     def decode_packet(packet: bytes):
@@ -121,26 +121,29 @@ class UnifiInput(Input):
             camera_name = self.cameras[header.get('id')].get('name')
             rtsp_link = self.get_rtsp_link(self.cameras[header.get('id')].get('channels').get('Low').get('rtspAlias'))
             logging.info(f'Smart motion start detected for name: {camera_name} use URL: {rtsp_link}')
+            super().start_capture_topic(camera_name)
         elif payload and is_smart_detection == False:
             camera_name = self.cameras[header.get('id')].get('name')
             logging.info(f'Smart motion stop detected for name: {camera_name}')
+            super().stop_capture_topic(camera_name)
+
 
     def configure(self, config):
         self.host = config["host"]
         self.user = config["user"]
         self.password = config["password"]
+        self.authenticate()
+        self.get_bootstrap()
+
 
     def get_streams(self):
-        return self.cameras;
+        return [{"name": camera["name"], "stream_url": self.get_rtsp_link(camera.get('channels').get('Low').get('rtspAlias'))} for camera in self.cameras.values()]
 
     def capture(self, event_id, camera):
         return self.go2rtc_server.capture_image(event_id, camera)
 
 
     def listen(self):
-        print('unifi listen')
-        self.authenticate()
-        self.get_bootstrap()
         self.running = True
         asyncio.run(self.connect_to_websocket())
 
