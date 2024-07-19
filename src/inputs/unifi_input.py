@@ -8,12 +8,9 @@ from src.inputs.input import Input
 
 
 class UnifiInput(Input):
-    def __init__(self, host, port, user, password):
-        self.host = host
-        self.port = port
-        self.user = user
+    def __init__(self, go2rtc_server):
+        self.go2trc_server = go2rtc_server
         self.running = False
-        self.password = password
         self.headers = {}
         self.cameras = {}
         super().__init__()
@@ -21,7 +18,7 @@ class UnifiInput(Input):
     def authenticate(self) -> None:
         """Authenticate to the Unifi server and store headers for future requests."""
         try:
-            response = requests.post(f'{self.address}/api/auth/login', json={
+            response = requests.post(f'{self.host}/api/auth/login', json={
                 'username': self.user,
                 'password': self.password
             }, verify=False)
@@ -41,7 +38,7 @@ class UnifiInput(Input):
             raise e
 
     async def connect_to_websocket(self) -> None:
-        ws_url = self.address.replace('https', 'wss') + '/proxy/protect/ws/updates'
+        ws_url = self.host.replace('https', 'wss') + '/proxy/protect/ws/updates'
         ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
         ssl_context.check_hostname = False
         ssl_context.verify_mode = ssl.CERT_NONE
@@ -59,7 +56,7 @@ class UnifiInput(Input):
     def get_bootstrap(self) -> None:
         """Retrieve initial camera information from the server."""
         try:
-            response = requests.get(f'{self.address}/proxy/protect/api/bootstrap', headers=self.headers, verify=False)
+            response = requests.get(f'{self.host}/proxy/protect/api/bootstrap', headers=self.headers, verify=False)
             data = response.json()
             self.cameras = {}
             for camera in data['cameras']:
@@ -83,7 +80,7 @@ class UnifiInput(Input):
 
     def get_rtsp_link(self, rtsp_alias: str) -> str:
         """Generate an RTSP link for a camera."""
-        return self.address.replace('https', 'rtsp') + f':7441/{rtsp_alias}?enableSrtp'
+        return self.host.replace('https', 'rtsp') + f':7441/{rtsp_alias}?enableSrtp'
 
     @staticmethod
     def decode_packet(packet: bytes):
@@ -120,21 +117,28 @@ class UnifiInput(Input):
         payload = decoded_message.get('payload')
         is_smart_detection = payload.get('isSmartDetected')
         if payload and is_smart_detection:
-            logging.debug('Smart motion start detected')
+            logging.info('Smart motion start detected')
             camera_name = self.cameras[header.get('id')].get('name')
             rtsp_link = self.get_rtsp_link(self.cameras[header.get('id')].get('channels').get('Low').get('rtspAlias'))
-            logging.debug(f'Smart motion start detected for name: {camera_name} use URL: {rtsp_link}')
+            logging.info(f'Smart motion start detected for name: {camera_name} use URL: {rtsp_link}')
         elif payload and is_smart_detection == False:
             camera_name = self.cameras[header.get('id')].get('name')
-            logging.debug(f'Smart motion stop detected for name: {camera_name}')
+            logging.info(f'Smart motion stop detected for name: {camera_name}')
 
-    def add_input(self, config):
-        self.inputs[config["name"]] = config["topic"]
-        self.topic_to_input[config["topic"]] = config["name"]
-        self.streams.append(
-            {"name": config["name"], "stream_protocol": config["stream_protocol"], "stream_url": config["stream_url"]})
+    def configure(self, config):
+        self.host = config["host"]
+        self.user = config["user"]
+        self.password = config["password"]
+
+    def get_streams(self):
+        return self.cameras;
+
+    def capture(self, event_id, camera):
+        return self.go2rtc_server.capture_image(event_id, camera)
+
 
     def listen(self):
+        print('unifi listen')
         self.authenticate()
         self.get_bootstrap()
         self.running = True

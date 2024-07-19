@@ -12,7 +12,7 @@ from src.utils.singleton import singleton
 @singleton
 class Go2RTCServerManager:
     def __init__(self):
-        self.server_command = ["/app/go2rtc", "-config", "./go2rtc.yaml"]
+        self.server_command = ["./app/go2rtc", "-config", "./go2rtc.yaml"]
         self.config_file = "./go2rtc.yaml"
         self.process = None
         self.url = "http://localhost:1984"

@@ -1,6 +1,7 @@
 
 from src.utils.singleton import singleton
 from src.inputs.mqtt_input import MQTTInput
+from src.inputs.unifi_input import UnifiInput
 
 @singleton
 class InputManager:
@@ -18,8 +19,14 @@ class InputManager:
             mqtt_input = MQTTInput(self.go2rtc_server)
             mqtt_input.configure(config)
             self.inputs.append(mqtt_input)
+        if config["type"] == "unifi":
+            unifi_input = UnifiInput(self.go2rtc_server)
+            unifi_input.configure(config)
+            self.inputs.append(unifi_input)
 
     def init(self):
+        print('input manager init')
+        print(self.configs)
         if not self.is_configure:
             raise Exception("InputManager not configured")
         
