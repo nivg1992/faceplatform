@@ -45,7 +45,7 @@ class UnifiInput(Input):
         headers = [(key, value) for key, value in self.headers.items()]
         try:
             async with websockets.connect(ws_url, ssl=ssl_context, extra_headers=headers) as websocket:
-                while True and self.running:
+                while self.running:
                     logging.debug('Websocket created Successfully')
                     response = await websocket.recv()
                     self.on_message(response)
@@ -117,14 +117,13 @@ class UnifiInput(Input):
         payload = decoded_message.get('payload')
         is_smart_detection = payload.get('isSmartDetected')
         if payload and is_smart_detection:
-            logging.info('Smart motion start detected')
             camera_name = self.cameras[header.get('id')].get('name')
             rtsp_link = self.get_rtsp_link(self.cameras[header.get('id')].get('channels').get('Low').get('rtspAlias'))
-            logging.info(f'Smart motion start detected for name: {camera_name} use URL: {rtsp_link}')
+            logging.debug(f'Smart motion start detected for name: {camera_name} use URL: {rtsp_link}')
             super().start_capture_topic(camera_name)
         elif payload and is_smart_detection == False:
             camera_name = self.cameras[header.get('id')].get('name')
-            logging.info(f'Smart motion stop detected for name: {camera_name}')
+            logging.debug(f'Smart motion stop detected for name: {camera_name}')
             super().stop_capture_topic(camera_name)
 
 
