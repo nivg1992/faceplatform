@@ -7,11 +7,11 @@ import os
 
 router = APIRouter()
 
-@router.get("/events", tags=["events"])
+@router.get("/api/events", tags=["events"])
 async def get_events():
     return get_all_detect_events()
 
-@router.get("/events/{event_id}/img", tags=["events"])
+@router.get("/api/events/{event_id}/img", tags=["events"])
 async def get_event_face_img(event_id):
     try:
         path = get_event_picture_path(event_id)
