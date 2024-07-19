@@ -5,13 +5,19 @@ import {getBaseURL} from '../common/url';
 import { Avatar, Flex, AutoComplete } from "antd";
 import { DeleteOutlined, UserOutlined } from '@ant-design/icons';
 import FaceGallery from './faceGallery';
+
 import './TagFaces.css'
 
 interface IFace {
     name: string;
     path: string;
   }
-  
+
+interface OptionType {
+    value: string
+}
+
+type FilterFunc<OptionType> = (inputValue: string, option?: OptionType) => boolean;
 
 const TagFaces: React.FC = () => {
     const [facesOptions, setFacesOptions] = useState<{ value: string }[]>([])
@@ -28,23 +34,30 @@ const TagFaces: React.FC = () => {
     }, []);
 
     useEffect(() => {
-        setFacesOptions(faces.map(face => ({value: face.name.startsWith('unknown') ? '' : face.name})).filter(item => item.value != ''))
+        const relevantOptions = faces.map(face => ({value: face.name.startsWith('unknown') ? '' : face.name})).filter(item => item.value != '')
+        setFacesOptions(relevantOptions)
     }, [faces])
 
     const onChange = (faceName: string, data: string) => {
         setFacesValue(prevInputValues => ({
             ...prevInputValues,
-            [faceName]: data
+            [faceName]: data.toLowerCase().trim()
         }))
     };
 
     const renameFace = async (faceIndex: number) => {
-        await axios.post(`${getBaseURL()}/faces/rename`, {source_face: faces[faceIndex].name,dest_face: facesValue[faces[faceIndex].name]});
+        if(faces[faceIndex].name.toLowerCase() == facesValue[faces[faceIndex].name].toLowerCase() || facesValue[faces[faceIndex].name] == '') {
+            return;
+        }
+        const response = await axios.post(`${getBaseURL()}/faces/rename`, {source_face: faces[faceIndex].name.toLowerCase(),dest_face: facesValue[faces[faceIndex].name].toLowerCase()});
+        if(response.data.action === "merge") {
+            setFaces(faces.filter((face, index) => index !== faceIndex))
+        } else {
+            setFaces(faces.map((face, index) => index === faceIndex ? { ...face,  name: facesValue[face.name]} : face))
+        }
         const cloneFacesValue = {...facesValue};
         delete cloneFacesValue[faces[faceIndex].name];
-        setFaces(faces.map((face, index) => index === faceIndex ? { ...face,  name: facesValue[face.name]} : face))
         setFacesValue(cloneFacesValue);
-        
     }
 
     const onDelete = async (faceIndex: number) => {
@@ -52,12 +65,13 @@ const TagFaces: React.FC = () => {
         setFaces([...faces.slice(0, faceIndex), ...faces.slice(faceIndex + 1)]);
     }
 
-    const onSelect = (data: string) => {
-        console.log('onSelect', data);
-    };
 
     const onClickFaceGallery = (faceName: string) => {
         setFaceForGallery(faceName)
+    }   
+
+    const filterOption: FilterFunc<OptionType> = (inputValue: string, option?: OptionType) => {
+        return option ? option.value.includes(inputValue) : true
     }
 
     if(faceForGallery) {
@@ -75,12 +89,15 @@ const TagFaces: React.FC = () => {
                         <Flex className='face-flex' vertical>
                             <Avatar onClick={() => onClickFaceGallery(face.name)} className='face-img' src={`${getBaseURL()}/faces/${face.name}/${face.path}`} size={100} icon={<UserOutlined />} />
                             <AutoComplete
+                                //options={options && options?.length > 0 ? options : facesOptions}
                                 options={facesOptions}
                                 style={{ width: 100, marginTop: "1rem" }}
-                                onSelect={onSelect}
+                                filterOption={filterOption}
+                                // onSearch={(text) => setOptions(searchOnOptions(text))}
+                                // onFocus={() => setOptions(searchOnOptions(''))}
                                 onBlur={() => renameFace(index)}
                                 onChange={(data) => onChange(face.name, data)}
-                                value={facesValue[face.name] || (face.name.startsWith('unknown') ? '' : face.name)}
+                                value={facesValue[face.name] !== undefined ? facesValue[face.name] : (face.name.startsWith('unknown') ? '' : face.name)}
                             />
                             <DeleteOutlined onClick={() => onDelete(index)} className='face-delete' />
                         </Flex>

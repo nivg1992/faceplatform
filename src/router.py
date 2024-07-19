@@ -27,3 +27,6 @@ app.mount("", StaticFiles(directory="client/dist", html=True), name="client")
 
 @app.get('/')
 async def client():  return RedirectResponse(url="client")
+
+@app.get('/events')
+async def client():  return RedirectResponse(url="client")
