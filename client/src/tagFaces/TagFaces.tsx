@@ -51,7 +51,7 @@ const TagFaces: React.FC = () => {
         }
         const response = await axios.post(`${getBaseURL()}/faces/rename`, {source_face: faces[faceIndex].name.toLowerCase(),dest_face: facesValue[faces[faceIndex].name].toLowerCase()});
         if(response.data.action === "merge") {
-            setFaces(faces.filter((face, index) => index !== faceIndex))
+            setFaces(faces.filter((_face, index) => index !== faceIndex))
         } else {
             setFaces(faces.map((face, index) => index === faceIndex ? { ...face,  name: facesValue[face.name]} : face))
         }
