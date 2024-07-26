@@ -40,8 +40,8 @@
   },
   "lint-staged": {
     "*.+(js|ts|jsx|tsx|json|yml|yaml|css|md)": [
-      "yarn format-stage",
-      "yarn lint-stage:fix"
+      "pnpm format-stage",
+      "pnpm lint-stage:fix"
     ]
   }
 }
