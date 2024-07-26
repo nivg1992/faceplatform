@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "prepare": "husky",
     "lint-stage:fix": "eslint --quiet --fix --ext .js --ext .jsx --ext .ts --ext .tsx",
-    "format-stage": "prettier --write --stage \"**/*.+(js|ts|jsx|tsx|json|yml|yaml|css|md)\""
+    "format-stage": "prettier --write --stage \"**/*.+(js|ts|jsx|tsx|json|yml|yaml|css|md)\"",
+    "format": "prettier --write . \"**/*.+(js|ts|jsx|tsx|json|yml|yaml|css|md)\""
   },
   "dependencies": {
     "@ant-design/icons": "^5.4.0",
