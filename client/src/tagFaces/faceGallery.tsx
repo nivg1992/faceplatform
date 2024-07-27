@@ -20,7 +20,7 @@ const FaceItem: React.FC<FaceItemProps> = ({ faceName, img, index, setGallery, g
     setGallery(prevGallery => [...prevGallery.slice(0, index), ...prevGallery.slice(index + 1)]);
   }, [index, setGallery]);
 
-  const { mutate } = useDeleteFaceImage({ onSuccess });
+  const { mutate } = useDeleteFaceImage(onSuccess);
   const onDelete = () => mutate({ faceName, imageId: gallery[index] });
 
   return (

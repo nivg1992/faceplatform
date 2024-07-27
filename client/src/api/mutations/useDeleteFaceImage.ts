@@ -7,7 +7,7 @@ async function deleteFaceImg({ faceName, imageId }: { faceName: string; imageId:
   await axios.delete(`${getBaseURL()}/faces/${faceName}/${imageId}`);
 }
 
-function useDeleteFaceImage({ onSuccess }: { onSuccess: () => void }) {
+function useDeleteFaceImage(onSuccess: () => void) {
   return useMutation({
     onSuccess,
     mutationFn: deleteFaceImg
