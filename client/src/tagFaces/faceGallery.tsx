@@ -1,24 +1,46 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { getBaseURL } from '../common/url';
+import React, { useCallback, useState } from 'react';
 import { Image, Col, Row, Breadcrumb, Flex } from 'antd';
-import './faceGallery.css';
 import { DeleteOutlined } from '@ant-design/icons';
 
-const FaceGallery: React.FC<{ faceName: string; onBack: () => void }> = ({ faceName, onBack }) => {
-  const [gallery, setGallery] = useState<string[]>([]);
-  useEffect(() => {
-    async function getFacesGallery() {
-      const response = await axios.get(`${getBaseURL()}/faces/${faceName}/gallery`);
-      setGallery(response.data);
-    }
-    getFacesGallery();
-  }, [faceName]);
+import { getBaseURL } from '../common/url';
+import './faceGallery.css';
+import useDeleteFaceImage from '../api/mutations/useDeleteFaceImage.ts';
+import useGetFacesGallery from '../api/queries/useGetFacesGallery.ts';
 
-  const onDeleteFaceImg = async (faceName: string, imgIndex: number) => {
-    await axios.delete(`${getBaseURL()}/faces/${faceName}/${gallery[imgIndex]}`);
-    setGallery([...gallery.slice(0, imgIndex), ...gallery.slice(imgIndex + 1)]);
-  };
+interface FaceItemProps {
+  faceName: string;
+  img: string;
+  index: number;
+  setGallery: React.Dispatch<React.SetStateAction<string[]>>;
+  gallery: string[];
+}
+
+const FaceItem: React.FC<FaceItemProps> = ({ faceName, img, index, setGallery, gallery }) => {
+  const onSuccess = useCallback(() => {
+    setGallery(prevGallery => [...prevGallery.slice(0, index), ...prevGallery.slice(index + 1)]);
+  }, [index, setGallery]);
+
+  const { mutate } = useDeleteFaceImage({ onSuccess });
+  const onDelete = () => mutate({ faceName, imageId: gallery[index] });
+
+  return (
+    <Col>
+      <Image className="gallery-img" width={200} src={`${getBaseURL()}/faces/${faceName}/${img}`} />
+      <DeleteOutlined onClick={onDelete} className="face-img-delete" />
+    </Col>
+  );
+};
+
+interface FaceGalleryProps {
+  faceName: string;
+  onBack: () => void;
+}
+
+const FaceGallery: React.FC<FaceGalleryProps> = ({ faceName, onBack }) => {
+  const [gallery, setGallery] = useState<string[]>([]);
+
+  const onSuccess = useCallback((data: string[]) => setGallery(data), []);
+  useGetFacesGallery(faceName, onSuccess);
 
   return (
     <Flex vertical>
@@ -39,15 +61,16 @@ const FaceGallery: React.FC<{ faceName: string; onBack: () => void }> = ({ faceN
         ]}
       />
       <Row gutter={{ xs: 8, sm: 16, md: 24, lg: 32 }}>
-        {gallery.map((img, index) => {
-          const key = `col-${index}`;
-          return (
-            <Col key={key}>
-              <Image className="gallery-img" width={200} src={`${getBaseURL()}/faces/${faceName}/${img}`} />
-              <DeleteOutlined onClick={() => onDeleteFaceImg(faceName, index)} className="face-img-delete" />
-            </Col>
-          );
-        })}
+        {gallery.map((img, index) => (
+          <FaceItem
+            key={`col-${index}`}
+            index={index}
+            faceName={faceName}
+            gallery={gallery}
+            setGallery={setGallery}
+            img={img}
+          />
+        ))}
       </Row>
     </Flex>
   );
