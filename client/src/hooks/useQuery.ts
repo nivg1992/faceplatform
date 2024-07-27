@@ -3,7 +3,7 @@ import { useState, useCallback, useEffect } from 'react';
 interface APIProps<Data> {
   onSuccess?: (data: Data) => void;
   onError?: (error: unknown) => void;
-  onSettled?: (error: unknown | null, data: Data | null) => void; // Update function signature
+  onSettled?: (error: unknown | null, data: Data | null) => void;
   queryFn: () => Promise<Data>;
 }
 
