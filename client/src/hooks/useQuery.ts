@@ -10,8 +10,10 @@ interface APIProps<Data> {
 function useQuery<Data>({ onSuccess, onError, onSettled, queryFn }: APIProps<Data>) {
   const [data, setData] = useState<Data | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<unknown>(null);
 
   const trigger = useCallback(async () => {
+    setError(null);
     setIsLoading(true);
     try {
       const results = await queryFn();
@@ -19,6 +21,7 @@ function useQuery<Data>({ onSuccess, onError, onSettled, queryFn }: APIProps<Dat
       if (onSuccess) onSuccess(results);
     } catch (error) {
       if (onError) onError(error);
+      setError(error);
     } finally {
       setIsLoading(false);
       if (onSettled) onSettled();
@@ -29,7 +32,7 @@ function useQuery<Data>({ onSuccess, onError, onSettled, queryFn }: APIProps<Dat
     trigger();
   }, [trigger]);
 
-  return { data, isLoading, trigger };
+  return { data, isLoading, error, isError: Boolean(error), trigger };
 }
 
 export default useQuery;

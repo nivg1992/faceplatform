@@ -14,15 +14,18 @@ function useMutation<Data, Variables>({
   mutationFn
 }: MutationAPIProps<Data, Variables>) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<unknown>(null);
 
   const mutate = useCallback(
     async (variables: Variables) => {
+      setError(null);
       setIsLoading(true);
       try {
         const data = await mutationFn(variables);
         if (onSuccess) onSuccess(data);
       } catch (error) {
         if (onError) onError(error);
+        setError(error);
       } finally {
         setIsLoading(false);
         if (onSettled) onSettled();
@@ -31,7 +34,7 @@ function useMutation<Data, Variables>({
     [onError, onSettled, onSuccess, mutationFn]
   );
 
-  return { isLoading, mutate };
+  return { isLoading, mutate, error, isError: Boolean(error) };
 }
 
 export default useMutation;
