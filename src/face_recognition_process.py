@@ -7,6 +7,7 @@ import os
 from src.utils.paths import extracted_faces_path_full, faces_path_full, events_path_full, deepface_path_full
 
 os.environ["DEEPFACE_HOME"] = deepface_path_full
+always_find = False
 
 def extract_and_save_faces(image_path, eventId):
     from deepface import DeepFace
@@ -32,7 +33,7 @@ def extract_and_save_faces(image_path, eventId):
         for i, face in enumerate(faces):
             confidence = face["confidence"]
             
-            if confidence < 0.1:
+            if confidence < 0.1 and always_find == False:
                 logging.debug(f"Face {i} skip by confidence: {confidence}")
                 continue
             
@@ -47,7 +48,7 @@ def extract_and_save_faces(image_path, eventId):
             if len(storage_images) > 0:
                 #cv2.imwrite(output_path, face["face"])
                 try:
-                    dfs = DeepFace.find(img_path = output_path, db_path = faces_path_full, detector_backend="skip", model_name="Dlib")
+                    dfs = DeepFace.find(img_path = output_path, db_path = faces_path_full, detector_backend="skip", model_name="Facenet512")
                 except ValueError as e:
                     os.remove(output_path)
                     continue

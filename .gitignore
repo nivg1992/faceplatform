@@ -8,3 +8,5 @@ database
 cameras.json
 go2rtc.yaml
 .env
+.idea
+test

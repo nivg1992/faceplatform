@@ -1,19 +1,19 @@
 .gallery-breadcrumb {
-    margin: 1rem 0;
+  margin: 1rem 0;
 }
 
 .gallery-img {
-    margin: 1rem 0;
+  margin: 1rem 0;
 }
 
 .face-img-delete {
-    position: absolute;
-    right: 0;
-    font-size: 15px;
-    cursor: pointer;
+  position: absolute;
+  right: 0;
+  font-size: 15px;
+  cursor: pointer;
 }
 
 .face-img-delete:hover {
-    color: #00b96b;
-    transform: scale(1.2); /* Scale up on hover */
+  color: #00b96b;
+  transform: scale(1.2); /* Scale up on hover */
 }

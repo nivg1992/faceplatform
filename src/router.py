@@ -6,6 +6,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from .routers import faces, events
 from starlette.responses import RedirectResponse
+from fastapi import HTTPException
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 app = FastAPI()
 app.include_router(faces.router)
@@ -23,7 +25,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.mount("", StaticFiles(directory="client/dist", html=True), name="client")
+class SPAStaticFiles(StaticFiles):
+    async def get_response(self, path: str, scope):
+        try:
+            return await super().get_response(path, scope)
+        except (HTTPException, StarletteHTTPException) as ex:
+            if ex.status_code == 404:
+                return await super().get_response("index.html", scope)
+            else:
+                raise ex
 
-@app.get('/')
-async def client():  return RedirectResponse(url="client")
+app.mount("/", SPAStaticFiles(directory="client/dist", html=True), name="client_root")
+app.mount("/events", SPAStaticFiles(directory="client/dist", html=True), name="client_root")
