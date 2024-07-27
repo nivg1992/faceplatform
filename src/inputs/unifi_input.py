@@ -1,3 +1,4 @@
+import os
 import ssl
 import asyncio
 import json
@@ -7,6 +8,7 @@ import requests
 import threading
 from src.inputs.input import Input
 
+PF_UNIFI_IMAGE_QUALITY = os.environ.get('PF_UNIFI_IMAGE_QUALITY', 'LOW')
 
 class UnifiInput(Input):
     def __init__(self, go2rtc_server):
@@ -31,12 +33,12 @@ class UnifiInput(Input):
                     'Cookie': cookie,
                     'X-CSRF-Token': csrf_token
                 }
-                logging.info('Authenticated successfully')
+                logging.debug('[Unifi] Authenticated successfully')
             else:
-                logging.error('Authentication failed')
-                raise Exception('Authentication failed')
+                logging.error('[Unifi] Authentication failed')
+                raise Exception('[Unifi] Authentication failed')
         except Exception as e:
-            logging.error(f'Error authenticating: {e}')
+            logging.error(f'[Unifi] Error authenticating: {e}')
             raise e
 
     def connect_to_websocket(self) -> None:
@@ -51,15 +53,18 @@ class UnifiInput(Input):
             self.loop.run_until_complete(self.send_receive_message(ws_url, ssl_context, headers))
             self.loop.close()
         except Exception as e:
-            logging.error(f'Failed to initiate websocket connection: {e}')
+            logging.error(f'[Unifi] Failed to initiate websocket connection: {e}')
             raise e
 
     async def send_receive_message(self, ws_url, ssl_context, headers) -> None:
         async with websockets.connect(ws_url, ssl=ssl_context, extra_headers=headers) as websocket:
-            logging.info('Websocket created Successfully')
+            logging.info(f"[Unifi] Websocket created Successfully with image quality {PF_UNIFI_IMAGE_QUALITY}")
             while not self.stop_event.is_set():
                 response = await websocket.recv()
-                self.on_message(response)
+                try:
+                    self.on_message(response)
+                except Exception as e:
+                    logging.error(f'[Unifi]: {e}')
 
 
     def get_bootstrap(self) -> None:
@@ -84,7 +89,7 @@ class UnifiInput(Input):
                     'channels': channels
                 }
         except Exception as e:
-            logging.error(f'Failed to bootstrap: {e}')
+            logging.error(f'[Unifi] Failed to bootstrap: {e}')
             raise e
 
     def get_rtsp_link(self, rtsp_alias: str) -> str:
@@ -126,15 +131,16 @@ class UnifiInput(Input):
         payload = decoded_message.get('payload')
         is_smart_detection = payload.get('isSmartDetected')
         if payload and is_smart_detection:
-            camera_name = self.cameras[header.get('id')].get('name')
-            rtsp_link = self.get_rtsp_link(self.cameras[header.get('id')].get('channels').get('High').get('rtspAlias'))
-            logging.info(f'Smart motion start detected for name: {camera_name} use URL: {rtsp_link}')
+            camera_name = self.get_camera_name(header)
+            logging.debug(f'[Unifi] Smart motion start detected for name: {camera_name}')
             super().start_capture_topic(camera_name)
         elif payload and is_smart_detection == False:
-            camera_name = self.cameras[header.get('id')].get('name')
-            logging.info(f'Smart motion stop detected for name: {camera_name}')
+            camera_name = self.get_camera_name(header)
+            logging.debug(f'[Unifi] Smart motion stop detected for name: {camera_name}')
             super().stop_capture_topic(camera_name)
 
+    def get_camera_name(self, header) -> None:
+        return f"{self.cameras[header.get('id')].get('name')}_{PF_UNIFI_IMAGE_QUALITY}".lower()
 
     def configure(self, config):
         self.host = config["host"]
@@ -145,7 +151,15 @@ class UnifiInput(Input):
 
 
     def get_streams(self):
-        return [{"name": camera["name"], "stream_url": self.get_rtsp_link(camera.get('channels').get('High').get('rtspAlias'))} for camera in self.cameras.values()]
+        streams = []
+        for camera in self.cameras.values():
+            for channel in camera['channels'].values():
+                if(channel['enabled']):
+                    streams.append({
+                        'name': f"{camera['name']}_{channel['name']}".replace(' ', '').lower(),
+                        'stream_url': self.get_rtsp_link(channel['rtspAlias'])
+                    })
+        return streams
 
     def capture(self, event_id, camera):
         return self.go2rtc_server.capture_image(event_id, camera)
