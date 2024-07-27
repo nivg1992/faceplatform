@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { getBaseURL } from '../common/url';
 import { Avatar, List, Space, Flex, Typography, Image } from 'antd';
 import { VideoCameraOutlined, FieldTimeOutlined, FrownOutlined, UserOutlined } from '@ant-design/icons';
 import axios from 'axios';
+
+import { getBaseURL } from '../common/url';
 
 const { Text } = Typography;
 
