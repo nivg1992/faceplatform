@@ -36,3 +36,4 @@ class SPAStaticFiles(StaticFiles):
                 raise ex
 
 app.mount("/", SPAStaticFiles(directory="client/dist", html=True), name="client_root")
+app.mount("/events", SPAStaticFiles(directory="client/dist", html=True), name="client_root")
