@@ -4,6 +4,7 @@ import json
 import logging
 import websockets
 import requests
+import threading
 from src.inputs.input import Input
 
 
@@ -13,6 +14,7 @@ class UnifiInput(Input):
         self.running = False
         self.headers = {}
         self.cameras = {}
+        self.stop_event = threading.Event()
         super().__init__()
 
     def authenticate(self) -> None:
@@ -29,7 +31,7 @@ class UnifiInput(Input):
                     'Cookie': cookie,
                     'X-CSRF-Token': csrf_token
                 }
-                logging.debug('Authenticated successfully')
+                logging.info('Authenticated successfully')
             else:
                 logging.error('Authentication failed')
                 raise Exception('Authentication failed')
@@ -37,21 +39,28 @@ class UnifiInput(Input):
             logging.error(f'Error authenticating: {e}')
             raise e
 
-    async def connect_to_websocket(self) -> None:
+    def connect_to_websocket(self) -> None:
         ws_url = self.host.replace('https', 'wss') + '/proxy/protect/ws/updates'
         ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
         ssl_context.check_hostname = False
         ssl_context.verify_mode = ssl.CERT_NONE
         headers = [(key, value) for key, value in self.headers.items()]
         try:
-            async with websockets.connect(ws_url, ssl=ssl_context, extra_headers=headers) as websocket:
-                while self.running:
-                    logging.debug('Websocket created Successfully')
-                    response = await websocket.recv()
-                    self.on_message(response)
+            self.loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(self.loop)
+            self.loop.run_until_complete(self.send_receive_message(ws_url, ssl_context, headers))
+            self.loop.close()
         except Exception as e:
             logging.error(f'Failed to initiate websocket connection: {e}')
             raise e
+
+    async def send_receive_message(self, ws_url, ssl_context, headers) -> None:
+        async with websockets.connect(ws_url, ssl=ssl_context, extra_headers=headers) as websocket:
+            logging.info('Websocket created Successfully')
+            while not self.stop_event.is_set():
+                response = await websocket.recv()
+                self.on_message(response)
+
 
     def get_bootstrap(self) -> None:
         """Retrieve initial camera information from the server."""
@@ -118,12 +127,12 @@ class UnifiInput(Input):
         is_smart_detection = payload.get('isSmartDetected')
         if payload and is_smart_detection:
             camera_name = self.cameras[header.get('id')].get('name')
-            rtsp_link = self.get_rtsp_link(self.cameras[header.get('id')].get('channels').get('Low').get('rtspAlias'))
-            logging.debug(f'Smart motion start detected for name: {camera_name} use URL: {rtsp_link}')
+            rtsp_link = self.get_rtsp_link(self.cameras[header.get('id')].get('channels').get('High').get('rtspAlias'))
+            logging.info(f'Smart motion start detected for name: {camera_name} use URL: {rtsp_link}')
             super().start_capture_topic(camera_name)
         elif payload and is_smart_detection == False:
             camera_name = self.cameras[header.get('id')].get('name')
-            logging.debug(f'Smart motion stop detected for name: {camera_name}')
+            logging.info(f'Smart motion stop detected for name: {camera_name}')
             super().stop_capture_topic(camera_name)
 
 
@@ -136,15 +145,15 @@ class UnifiInput(Input):
 
 
     def get_streams(self):
-        return [{"name": camera["name"], "stream_url": self.get_rtsp_link(camera.get('channels').get('Low').get('rtspAlias'))} for camera in self.cameras.values()]
+        return [{"name": camera["name"], "stream_url": self.get_rtsp_link(camera.get('channels').get('High').get('rtspAlias'))} for camera in self.cameras.values()]
 
     def capture(self, event_id, camera):
         return self.go2rtc_server.capture_image(event_id, camera)
 
 
     def listen(self):
-        self.running = True
-        asyncio.run(self.connect_to_websocket())
+        thread = threading.Thread(target=self.connect_to_websocket)
+        thread.start()
 
     def stop(self):
-        self.running = False
+        self.stop_event.set()
