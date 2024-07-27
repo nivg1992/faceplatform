@@ -1,28 +1,28 @@
 .hideOnMobile {
-    display: none;
-  }
-  @media only screen and (min-width: 768px) {
-    .hideOnMobile {
-      display: block;
-    }
-  }
-  
-  .hideOnDesktop {
+  display: none;
+}
+@media only screen and (min-width: 768px) {
+  .hideOnMobile {
     display: block;
   }
-  @media only screen and (min-width: 768px) {
-    .hideOnDesktop {
-      display: none;
-    }
+}
+
+.hideOnDesktop {
+  display: block;
+}
+@media only screen and (min-width: 768px) {
+  .hideOnDesktop {
+    display: none;
   }
+}
 
 .pageTitle {
-    margin: auto;
-    margin-left: 1rem;
+  margin: auto;
+  margin-left: 1rem;
 }
 
 @media only screen and (max-width: 768px) {
-    .pageTitle {
-        margin: auto !important;
-    }
+  .pageTitle {
+    margin: auto !important;
+  }
 }
