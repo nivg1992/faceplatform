@@ -3,7 +3,7 @@ import { useState, useCallback, useEffect } from 'react';
 interface APIProps<Data> {
   onSuccess?: (data: Data) => void;
   onError?: (error: unknown) => void;
-  onSettled?: () => void;
+  onSettled?: (error: unknown | null, data: Data | null) => void; // Update function signature
   queryFn: () => Promise<Data>;
 }
 
@@ -15,16 +15,19 @@ function useQuery<Data>({ onSuccess, onError, onSettled, queryFn }: APIProps<Dat
   const trigger = useCallback(async () => {
     setError(null);
     setIsLoading(true);
+    let results: Data | null = null;
+    let _error: unknown | null = null;
     try {
-      const results = await queryFn();
+      results = await queryFn();
       setData(results);
       if (onSuccess) onSuccess(results);
-    } catch (error) {
-      if (onError) onError(error);
-      setError(error);
+    } catch (e) {
+      if (onError) onError(e);
+      _error = e;
+      setError(e);
     } finally {
       setIsLoading(false);
-      if (onSettled) onSettled();
+      if (onSettled) onSettled(_error, results);
     }
   }, [onError, onSettled, onSuccess, queryFn]);
 

@@ -1,9 +1,9 @@
 import { useState, useCallback } from 'react';
 
 interface MutationAPIProps<Data, Variables> {
-  onSuccess?: (data: Data) => void;
-  onError?: (error: unknown) => void;
-  onSettled?: () => void;
+  onSuccess?: (data: Data, variables: Variables) => void;
+  onError?: (error: unknown, variables: Variables) => void;
+  onSettled?: (data: Data | null, e: unknown, variables: Variables) => void;
   mutationFn: (variables: Variables) => Promise<Data>;
 }
 
@@ -20,18 +20,24 @@ function useMutation<Data, Variables>({
     async (variables: Variables) => {
       setError(null);
       setIsLoading(true);
+      let data: Data | null = null;
+      let e: unknown | null = null;
+
       try {
-        const data = await mutationFn(variables);
-        if (onSuccess) onSuccess(data);
-      } catch (error) {
-        if (onError) onError(error);
-        setError(error);
+        data = await mutationFn(variables);
+        if (onSuccess) onSuccess(data, variables);
+      } catch (err) {
+        e = err;
+        if (onError) onError(e, variables);
+        setError(e);
       } finally {
         setIsLoading(false);
-        if (onSettled) onSettled();
+        if (onSettled) {
+          onSettled(data, e, variables);
+        }
       }
     },
-    [onError, onSettled, onSuccess, mutationFn]
+    [mutationFn, onSuccess, onError, onSettled]
   );
 
   return { isLoading, mutate, error, isError: Boolean(error) };
