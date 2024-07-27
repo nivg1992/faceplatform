@@ -9,3 +9,4 @@ cameras.json
 go2rtc.yaml
 .env
 .idea
+.DS_Store
