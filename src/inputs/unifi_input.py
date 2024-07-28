@@ -156,12 +156,14 @@ class UnifiInput(Input):
         return False
 
     def configure(self, config):
-        self.host = f"https://{config["host"]}"
-        self.user = config["user"]
-        self.password = config["password"]
-        self.image_quality = config["image_quality"]
-        self.skip_ssl_check = bool(config["skip_ssl_check"])
-        self.exclude_cameras = config["exclude_cameras"]
+        self.host = "https://" + config.get("host", "")
+        self.user = config.get("user")
+        self.password = config.get("password")
+        self.image_quality = config.get("image_quality", "LOW")
+        self.skip_ssl_check = bool(config.get("skip_ssl_check", True))
+        self.exclude_cameras = config.get("exclude_cameras", [])
+        if not config.get("host") or not self.user or not self.password:
+            raise Exception('[Unifi] host, user and password must be configured in config file!') 
         self.authenticate()
         self.get_bootstrap()
 
