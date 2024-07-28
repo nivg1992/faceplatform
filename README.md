@@ -21,6 +21,10 @@ Ensure you have the following prerequisites before installing FacePlatform:
      camera: rtsp://127.0.0.1/token
   ```
 - [cmake](https://github.com/Kitware/CMake/releases) Download and install the relevant binary
+- ffmpeg    
+   ```bash
+      apt install ffmpeg
+   ```
 - node22
 
 ### Installation
@@ -53,7 +57,16 @@ Ensure you have the following prerequisites before installing FacePlatform:
                 "stream_url": "rtsp://127.0.0.1/aa"
             }
         ]
-      }
+      },
+      {
+        "type": "unifi",
+        "host": "192.168.1.1",
+        "user": "myUnifiUser",
+        "password": "myPassword",
+        "image_quality": "HIGH",
+        "skip_ssl_check": true,
+        "exclude_cameras": ["kitchen"]
+     }
    ]
    ```
 
