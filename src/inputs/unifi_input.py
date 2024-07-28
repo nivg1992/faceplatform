@@ -13,9 +13,6 @@ from urllib3.exceptions import InsecureRequestWarning
 warnings.filterwarnings("ignore", category=InsecureRequestWarning)
 from src.inputs.input import Input
 
-PF_UNIFI_IMAGE_QUALITY = os.environ.get('PF_UNIFI_IMAGE_QUALITY', 'LOW')
-PF_UNIFI_SKIP_SSL = os.environ.get('PF_UNIFI_SKIP_SSL', True)
-
 class UnifiInput(Input):
     def __init__(self, go2rtc_server):
         self.go2rtc_server = go2rtc_server
@@ -50,7 +47,7 @@ class UnifiInput(Input):
     def connect_to_websocket(self) -> None:
         ws_url = self.host.replace('https', 'wss') + '/proxy/protect/ws/updates'
         ssl_context = {};
-        if PF_UNIFI_SKIP_SSL:
+        if self.skip_ssl_check:
             ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
             ssl_context.check_hostname = False
             ssl_context.verify_mode = ssl.CERT_NONE
@@ -66,7 +63,7 @@ class UnifiInput(Input):
 
     async def send_receive_message(self, ws_url, ssl_context, headers) -> None:
         async with websockets.connect(ws_url, ssl=ssl_context, extra_headers=headers) as websocket:
-            logging.info(f"[Unifi] Websocket created Successfully with image quality {PF_UNIFI_IMAGE_QUALITY}")
+            logging.info(f"[Unifi] Websocket created Successfully with image quality {self.image_quality}")
             while not self.stop_event.is_set():
                 response = await websocket.recv()
                 try:
@@ -148,12 +145,14 @@ class UnifiInput(Input):
             super().stop_capture_topic(camera_name)
 
     def get_camera_name(self, header) -> None:
-        return f"{self.cameras[header.get('id')].get('name')}_{PF_UNIFI_IMAGE_QUALITY}".lower()
+        return f"{self.cameras[header.get('id')].get('name')}_{self.image_quality}".lower()
 
     def configure(self, config):
         self.host = config["host"]
         self.user = config["user"]
         self.password = config["password"]
+        self.image_quality = config["image_quality"]
+        self.skip_ssl_check = bool(config["skip_ssl_check"])
         self.authenticate()
         self.get_bootstrap()
 
