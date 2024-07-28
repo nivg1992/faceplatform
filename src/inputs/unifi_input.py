@@ -6,9 +6,15 @@ import logging
 import websockets
 import requests
 import threading
+import warnings
+from urllib3.exceptions import InsecureRequestWarning
+
+# Disable only the InsecureRequestWarning
+warnings.filterwarnings("ignore", category=InsecureRequestWarning)
 from src.inputs.input import Input
 
 PF_UNIFI_IMAGE_QUALITY = os.environ.get('PF_UNIFI_IMAGE_QUALITY', 'LOW')
+PF_UNIFI_SKIP_SSL = os.environ.get('PF_UNIFI_SKIP_SSL', True)
 
 class UnifiInput(Input):
     def __init__(self, go2rtc_server):
@@ -43,9 +49,11 @@ class UnifiInput(Input):
 
     def connect_to_websocket(self) -> None:
         ws_url = self.host.replace('https', 'wss') + '/proxy/protect/ws/updates'
-        ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-        ssl_context.check_hostname = False
-        ssl_context.verify_mode = ssl.CERT_NONE
+        ssl_context = {};
+        if PF_UNIFI_SKIP_SSL:
+            ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+            ssl_context.check_hostname = False
+            ssl_context.verify_mode = ssl.CERT_NONE
         headers = [(key, value) for key, value in self.headers.items()]
         try:
             self.loop = asyncio.new_event_loop()
