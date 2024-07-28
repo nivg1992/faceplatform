@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Avatar, List, Space, Flex, Typography, Image } from 'antd';
 import { VideoCameraOutlined, FieldTimeOutlined, FrownOutlined, UserOutlined } from '@ant-design/icons';
-import axios from 'axios';
 
 import { getBaseURL } from '../common/url';
+import useGetEvents from '../api/queries/useGetEvents.ts';
 
 const { Text } = Typography;
 
@@ -14,7 +14,7 @@ interface IFace {
   path: string;
 }
 
-interface IEvent {
+export interface IEvent {
   id: number;
   camera: string;
   created: string;
@@ -45,13 +45,8 @@ function timeDifference(date1: Date, date2: Date) {
 
 const Events: React.FC = () => {
   const [events, setEvents] = useState<IEvent[]>([]);
-  useEffect(() => {
-    async function getFacesGallery() {
-      const response = await axios.get(`${getBaseURL()}/events`);
-      setEvents(response.data);
-    }
-    getFacesGallery();
-  }, []);
+  const onSuccess = useCallback((data: IEvent[]) => setEvents(data), []);
+  useGetEvents(onSuccess);
 
   return (
     <List
