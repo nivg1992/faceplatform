@@ -57,7 +57,16 @@ Ensure you have the following prerequisites before installing FacePlatform:
                 "stream_url": "rtsp://127.0.0.1/aa"
             }
         ]
-      }
+      },
+      {
+        "type": "unifi",
+        "host": "192.168.1.1",
+        "user": "myUnifiUser",
+        "password": "myPassword",
+        "image_quality": "HIGH",
+        "skip_ssl_check": true,
+        "exclude_cameras": ["kitchen"]
+     }
    ]
    ```
 

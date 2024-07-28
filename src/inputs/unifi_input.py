@@ -137,22 +137,31 @@ class UnifiInput(Input):
         is_smart_detection = payload.get('isSmartDetected')
         if payload and is_smart_detection:
             camera_name = self.get_camera_name(header)
-            logging.debug(f'[Unifi] Smart motion start detected for name: {camera_name}')
-            super().start_capture_topic(camera_name)
+            if not self.is_camera_excluded(camera_name):
+                logging.debug(f'[Unifi] Smart motion start detected for name: {camera_name}')
+                super().start_capture_topic(camera_name)
         elif payload and is_smart_detection == False:
             camera_name = self.get_camera_name(header)
-            logging.debug(f'[Unifi] Smart motion stop detected for name: {camera_name}')
-            super().stop_capture_topic(camera_name)
+            if not self.is_camera_excluded(camera_name):
+                logging.debug(f'[Unifi] Smart motion stop detected for name: {camera_name}')
+                super().stop_capture_topic(camera_name)
 
-    def get_camera_name(self, header) -> None:
+    def get_camera_name(self, header) -> str:
         return f"{self.cameras[header.get('id')].get('name')}_{self.image_quality}".lower()
 
+    def is_camera_excluded(self, camera_name) -> bool:
+        for excluded_camera in self.exclude_cameras:
+            if excluded_camera in camera_name:
+                return True
+        return False
+
     def configure(self, config):
-        self.host = config["host"]
+        self.host = f"https://{config["host"]}"
         self.user = config["user"]
         self.password = config["password"]
         self.image_quality = config["image_quality"]
         self.skip_ssl_check = bool(config["skip_ssl_check"])
+        self.exclude_cameras = config["exclude_cameras"]
         self.authenticate()
         self.get_bootstrap()
 
