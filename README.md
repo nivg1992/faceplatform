@@ -59,13 +59,13 @@ Ensure you have the following prerequisites before installing FacePlatform:
         ]
       },
       {
-        "type": "unifi",
-        "host": "192.168.1.1",
-        "user": "myUnifiUser",
-        "password": "myPassword",
-        "image_quality": "HIGH",
-        "skip_ssl_check": true,
-        "exclude_cameras": ["kitchen"]
+        "type": "unifi", // required  
+        "host": "192.168.1.1",  // required
+        "user": "myUnifiUser",  // required
+        "password": "myPassword",  // required
+        "image_quality": "HIGH",  // optional, default: LOW
+        "skip_ssl_check": false,  // optional, default: true
+        "exclude_cameras": ["kitchen"]   // optional, default: []
      }
    ]
    ```
