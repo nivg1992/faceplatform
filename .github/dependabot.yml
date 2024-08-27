@@ -23,6 +23,6 @@ updates:
     groups:
       node-dependencies:
         patterns:
-          - "client/package.json"
-          - "client/package-lock.json"
-          - "client/pnpm-lock.yaml"
+          - "**/package.json"
+          - "**/package-lock.json"
+          - "**/pnpm-lock.yaml"
