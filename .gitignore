@@ -11,3 +11,4 @@ go2rtc.yaml
 .idea
 .DS_Store
 test
+.pnpm-store
