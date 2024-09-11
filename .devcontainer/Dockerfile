@@ -7,6 +7,8 @@ RUN  wget -O /tmp/cmake.tar.gz "https://github.com/Kitware/CMake/releases/downlo
     cp /tmp/cmake-dir/bin/* /usr/local/bin && \
     cp -R /tmp/cmake-dir/share/* /usr/local/share
 
-RUN curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash
-RUN nvm install 22
+RUN curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash \
+    && . $NVM_DIR/nvm.sh \
+    && nvm install 22
+    
 RUN npm install -g pnpm
