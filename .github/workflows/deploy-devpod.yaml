@@ -33,7 +33,7 @@ jobs:
         with:
           platforms: linux/amd64
           push: true
-          context: ./.devcontainer
+          file: .devcontainer/Dockerfile
           tags: ${{env.REGISTRY_IMAGE}}:latest
           cache-from: type=registry,ref=${{env.REGISTRY_IMAGE}}:buildcache
           cache-to: type=registry,ref=${{env.REGISTRY_IMAGE}}:buildcache,mode=max
