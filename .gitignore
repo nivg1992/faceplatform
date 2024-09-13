@@ -12,3 +12,4 @@ go2rtc.yaml
 .DS_Store
 test
 .pnpm-store
+.venv
