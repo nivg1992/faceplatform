@@ -17,7 +17,7 @@ matplotlib = "^3.9.1"
 dlib = "^19.24.4"
 fastapi = "^0.112.2"
 peewee = "^3.17.6"
-uvicorn = "^0.30.6"
+uvicorn = "^0.32.0"
 websockets = "^13.1"
 
 [build-system]
