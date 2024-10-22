@@ -1,6 +1,6 @@
 import globals from "globals";
 
-module.exports = {
+export default [{
   languageOptions: {
       globals: {
         ...globals.browser,
@@ -37,4 +37,4 @@ module.exports = {
       }
     ]
   }
-};
+}]
