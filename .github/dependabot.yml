@@ -12,11 +12,7 @@ updates:
     groups:
       python-dependencies:
         patterns:
-          - "**/requirements.txt"
-          - "**/Pipfile"
-          - "**/setup.py"
-          - "**/poetry.lock"
-          - "**/pyproject.toml"
+          - "*"
   - package-ecosystem: "npm" # See documentation for possible values
     directory: "/client" # Location of package manifests
     schedule:
@@ -24,6 +20,4 @@ updates:
     groups:
       node-dependencies:
         patterns:
-          - "**/package.json"
-          - "**/package-lock.json"
-          - "**/pnpm-lock.yaml"
+          - "*"
