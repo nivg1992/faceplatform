@@ -1,4 +1,12 @@
+import globals from "globals";
+
 module.exports = {
+  languageOptions: {
+      globals: {
+        ...globals.browser,
+      },
+    }
+  },
   env: { browser: true, es2020: true },
   files: ["src/**/*.js", "src/**/*.tsx"],
   extends: [
