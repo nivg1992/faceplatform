@@ -13,12 +13,12 @@ paho-mqtt = "^2.1.0"
 requests = "^2.32.3"
 tf-keras = "^2.18.0"
 pyyaml = "^6.0.2"
-matplotlib = "^3.9.2"
+matplotlib = "^3.10.0"
 dlib = "^19.24.6"
-fastapi = "^0.115.5"
+fastapi = "^0.115.6"
 peewee = "^3.17.8"
-uvicorn = "^0.32.0"
-websockets = "^14.1"
+uvicorn = "^0.34.0"
+websockets = "^14.2"
 
 [build-system]
 requires = ["poetry-core"]
