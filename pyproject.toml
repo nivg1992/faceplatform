@@ -8,16 +8,16 @@ package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.10"
-deepface = "^0.0.93"
+deepface = "^0.0.95"
 paho-mqtt = "^2.1.0"
-requests = "^2.32.3"
-tf-keras = "^2.18.0"
-pyyaml = "^6.0.2"
-matplotlib = "^3.10.0"
-dlib = "^19.24.6"
-fastapi = "^0.115.8"
-peewee = "^3.17.9"
-uvicorn = "^0.34.0"
+requests = "^2.32.5"
+tf-keras = "^2.20.1"
+pyyaml = "^6.0.3"
+matplotlib = "^3.10.7"
+dlib = "^20.0.0"
+fastapi = "^0.120.0"
+peewee = "^3.18.2"
+uvicorn = "^0.38.0"
 websockets = "^15.0"
 
 [build-system]
